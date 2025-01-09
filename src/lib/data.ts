@@ -1,7 +1,7 @@
-import { DashboardData } from './types';
+import { NetworkTerms } from './types';
 import { getDashboardData } from '@/app/actions';
 
-export async function getActiveNetworksWithTotals(date: Date) {
+export async function getActiveNetworksWithTotals(_date: Date): Promise<NetworkTerms[]> {
   try {
     const data = await getDashboardData();
     
@@ -13,7 +13,7 @@ export async function getActiveNetworksWithTotals(date: Date) {
       .filter((network) => network.runningTotal > 0);
       
   } catch (error) {
-    console.error('Error fetching network data');
+    console.error('Error fetching network data:', error);
     return [];
   }
 } 

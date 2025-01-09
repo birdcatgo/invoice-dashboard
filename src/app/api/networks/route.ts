@@ -18,7 +18,6 @@ export async function GET() {
     const sheets = google.sheets({ version: 'v4', auth });
     const sheetId = process.env.CASH_FLOW_PROJECTIONS_EXTENDED_2024_SHEET_ID;
     
-    // First, create the Paid Invoices sheet if it doesn't exist
     try {
       await sheets.spreadsheets.batchUpdate({
         spreadsheetId: sheetId,
@@ -37,7 +36,6 @@ export async function GET() {
         }
       });
 
-      // Add headers to the new sheet
       await sheets.spreadsheets.values.update({
         spreadsheetId: sheetId,
         range: 'Paid Invoices!A1:C1',
@@ -46,11 +44,10 @@ export async function GET() {
           values: [['Network', 'Amount', 'Due Date']]
         }
       });
-    } catch (error) {
+    } catch (_error) {
       // Sheet might already exist, continue
     }
 
-    // Now fetch all data
     const [networkTerms, toBeInvoiced, invoices, paidInvoices] = await Promise.all([
       sheets.spreadsheets.values.get({
         spreadsheetId: sheetId,
@@ -70,28 +67,18 @@ export async function GET() {
       }),
     ]);
 
-    const processedNetworkTerms = (networkTerms.data.values || []).map(row => {
-      // Get the running total from column H (index 7)
-      const rawTotal = row[7] || '0';
-      
-      // Remove currency symbol, commas and convert to number
-      const cleanTotal = rawTotal.replace(/[$,]/g, '');
-      const runningTotal = parseFloat(cleanTotal);
-
-      return {
-        network: row[0] || '',
-        offer: row[1] || '',
-        payPeriod: parseFloat(row[2]) || 0,
-        netTerms: parseInt(row[3]) || 0,
-        periodStart: row[4] || '',
-        periodEnd: row[5] || '',
-        invoiceDue: row[6] || '',
-        runningTotal: runningTotal || 0
-      };
-    });
+    const processedNetworkTerms = (networkTerms.data.values || []).map(row => ({
+      network: row[0] || '',
+      offer: row[1] || '',
+      payPeriod: parseFloat(row[2]) || 0,
+      netTerms: parseInt(row[3]) || 0,
+      periodStart: row[4] || '',
+      periodEnd: row[5] || '',
+      invoiceDue: row[6] || '',
+      runningTotal: parseFloat(row[7]?.replace(/[$,]/g, '') || '0') || 0
+    }));
 
     const processAmount = (value: string) => {
-      // Remove currency symbols and commas, then convert to number
       const cleanValue = value.replace(/[$,]/g, '');
       return parseFloat(cleanValue) || 0;
     };
@@ -115,19 +102,19 @@ export async function GET() {
       }))
     });
 
-    // Add CORS headers
     response.headers.set('Access-Control-Allow-Origin', '*');
     response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
     response.headers.set('Access-Control-Allow-Headers', 'Content-Type');
 
     return response;
-  } catch (_error) {
-    return {
+  } catch (error) {
+    console.error('Network data error:', error);
+    return NextResponse.json({
       networkTerms: [],
       toBeInvoiced: [],
       invoices: [],
       paidInvoices: []
-    };
+    });
   }
 }
 

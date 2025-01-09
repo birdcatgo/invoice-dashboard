@@ -1,11 +1,15 @@
 'use server';
 
 import { DashboardData } from '@/lib/types';
+import { headers } from 'next/headers';
 
 export async function getDashboardData(): Promise<DashboardData> {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || `http://localhost:${process.env.PORT || 3002}`;
-    const response = await fetch(`${baseUrl}/api/networks`, {
+    const headersList = headers();
+    const host = headersList.get('host') || 'localhost:3002';
+    const protocol = process.env.NODE_ENV === 'development' ? 'http' : 'https';
+    
+    const response = await fetch(`${protocol}://${host}/api/networks`, {
       cache: 'no-store'
     });
     
@@ -15,7 +19,6 @@ export async function getDashboardData(): Promise<DashboardData> {
     }
 
     const data = await response.json();
-    console.log('Fetched data:', data);
     return data;
   } catch (error) {
     console.error('Error fetching dashboard data:', error);
