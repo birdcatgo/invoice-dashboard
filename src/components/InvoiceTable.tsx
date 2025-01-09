@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { Invoice } from '@/lib/types';
 import { formatCurrency, formatDate, getInvoiceStatusColor } from '@/lib/utils';
 
@@ -25,8 +24,6 @@ export default function InvoiceTable({
   onNotesEdit,
   onAmountChange
 }: Props) {
-  const [editingId, setEditingId] = useState<string | null>(null);
-
   return (
     <div className="overflow-x-auto">
       <table className="min-w-full divide-y divide-gray-200">
