@@ -6,6 +6,11 @@ interface GoogleSheetRow {
   [index: number]: string;
 }
 
+interface NetworkData {
+  action: string;
+  network: string;
+}
+
 export async function GET() {
   console.log('API: Starting request');
   
@@ -86,10 +91,14 @@ export async function GET() {
 
 export async function POST(request: Request): Promise<Response> {
   try {
-    const data: NetworkData = await request.json();
-    // ... rest of the function
+    const networkData = await request.json() as NetworkData;
+    return NextResponse.json({ success: true, data: networkData });
   }
-  catch (error) {
-    // ... error handling
+  catch (err) {
+    console.error('POST Error:', err);
+    return NextResponse.json(
+      { error: 'Failed to process request' },
+      { status: 500 }
+    );
   }
 } 
