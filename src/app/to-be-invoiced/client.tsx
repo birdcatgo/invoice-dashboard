@@ -29,7 +29,7 @@ export default function ToBeInvoicedClient({ data }: Props) {
     );
   };
 
-  const onMarkAsInvoiced = (invoice: any) => {
+  const onMarkAsInvoiced = (invoice: Invoice) => {
     setIsLoading(true);
     fetch('/api/invoices', {
       method: 'POST',

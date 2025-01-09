@@ -122,9 +122,13 @@ export async function GET() {
     response.headers.set('Access-Control-Allow-Headers', 'Content-Type');
 
     return response;
-  } catch (error: any) {
-    console.error('Data parsing error:', error);
-    return NextResponse.json({ error: error?.message || 'An error occurred' });
+  } catch (_error) {
+    return {
+      networkTerms: [],
+      toBeInvoiced: [],
+      invoices: [],
+      paidInvoices: []
+    };
   }
 }
 

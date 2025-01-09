@@ -20,7 +20,7 @@ export default function OutstandingInvoicesClient({ data }: Props) {
     );
   };
 
-  const onMarkAsPaid = (invoice: any) => {
+  const onMarkAsPaid = (invoice: Invoice, amountPaid?: number, datePaid?: string) => {
     setIsLoading(true);
     fetch('/api/invoices', {
       method: 'POST',
