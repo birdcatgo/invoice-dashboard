@@ -90,16 +90,20 @@ export async function GET() {
     response.headers.set('Access-Control-Allow-Origin', '*');
     return response;
 
-  } catch (error) {
+  } catch (error: unknown) {
+    // Type guard for Error object
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorStack = error instanceof Error ? error.stack : undefined;
+
     console.error('API Route Error:', {
-      message: error.message,
-      stack: error.stack
+      message: errorMessage,
+      stack: errorStack
     });
     
     return NextResponse.json(
       { 
         error: 'Failed to fetch data',
-        details: error.message 
+        details: errorMessage 
       },
       { status: 500 }
     );
@@ -111,8 +115,9 @@ export async function POST(request: Request): Promise<Response> {
     const networkData = await request.json() as NetworkData;
     return NextResponse.json({ success: true, data: networkData });
   }
-  catch (err) {
-    console.error('POST Error:', err);
+  catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('POST Error:', errorMessage);
     return NextResponse.json(
       { error: 'Failed to process request' },
       { status: 500 }
