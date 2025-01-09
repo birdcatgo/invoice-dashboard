@@ -1,15 +1,13 @@
 'use server';
 
 import { DashboardData } from '@/lib/types';
-import { headers } from 'next/headers';
 
 export async function getDashboardData(): Promise<DashboardData> {
   try {
-    const headersList = headers();
-    const host = headersList.get('host') || 'localhost:3002';
-    const protocol = process.env.NODE_ENV === 'development' ? 'http' : 'https';
-    
-    const response = await fetch(`${protocol}://${host}/api/networks`, {
+    // For Vercel, use relative URL which will be automatically resolved
+    const response = await fetch(process.env.VERCEL_URL 
+      ? 'https://invoice-dashboard-birdcatgo.vercel.app/api/networks'
+      : 'http://localhost:3002/api/networks', {
       cache: 'no-store'
     });
     
