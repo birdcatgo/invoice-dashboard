@@ -23,7 +23,7 @@ export async function getDashboardData(): Promise<DashboardData> {
 
     const data = await response.json();
     return data;
-  } catch (_) {
+  } catch {
     // Return empty data on any error
     return {
       networkTerms: [],
