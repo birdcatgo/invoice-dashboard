@@ -1,10 +1,7 @@
-import { Network, DashboardData } from './types';
-import { getPSTDateRange } from './utils';
+import { DashboardData } from './types';
 import { getDashboardData } from '@/app/actions';
 
 export async function getActiveNetworksWithTotals(date: Date) {
-  const { startDate: _start, endDate: _end } = getPSTDateRange(date);
-  
   try {
     const data = await getDashboardData();
     
@@ -15,7 +12,7 @@ export async function getActiveNetworksWithTotals(date: Date) {
       }))
       .filter((network) => network.runningTotal > 0);
       
-  } catch (_error) {
+  } catch (error) {
     console.error('Error fetching network data');
     return [];
   }
