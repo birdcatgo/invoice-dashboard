@@ -1,120 +1,72 @@
 import { NextResponse } from 'next/server';
-import { google } from 'googleapis';
+import { getGoogleSheets } from '@/lib/sheets';
 
 export async function GET() {
   try {
-    if (!process.env.CASH_FLOW_PROJECTIONS_EXTENDED_2024_SHEET_ID) {
-      return NextResponse.json({ error: 'Missing SHEET_ID environment variable' });
-    }
-
-    const auth = new google.auth.GoogleAuth({
-      credentials: {
-        client_email: process.env.GOOGLE_CLIENT_EMAIL,
-        private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-      },
-      scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+    // Log environment variables presence
+    console.log('API: Environment check', {
+      hasClientEmail: !!process.env.GOOGLE_SHEETS_CLIENT_EMAIL,
+      hasPrivateKey: !!process.env.GOOGLE_SHEETS_PRIVATE_KEY,
+      hasProjectId: !!process.env.GOOGLE_SHEETS_PROJECT_ID,
+      hasSheetId: !!process.env.CASH_FLOW_PROJECTIONS_EXTENDED_2024_SHEET_ID
     });
 
-    const sheets = google.sheets({ version: 'v4', auth });
-    const sheetId = process.env.CASH_FLOW_PROJECTIONS_EXTENDED_2024_SHEET_ID;
-    
+    const sheets = await getGoogleSheets();
+    console.log('API: Sheets client initialized');
+
     try {
-      await sheets.spreadsheets.batchUpdate({
-        spreadsheetId: sheetId,
-        requestBody: {
-          requests: [{
-            addSheet: {
-              properties: {
-                title: 'Paid Invoices',
-                gridProperties: {
-                  rowCount: 1000,
-                  columnCount: 3
-                }
-              }
-            }
-          }]
-        }
+      const [networkTerms, toBeInvoiced, invoices, paidInvoices] = await Promise.all([
+        sheets.spreadsheets.values.get({
+          spreadsheetId: process.env.CASH_FLOW_PROJECTIONS_EXTENDED_2024_SHEET_ID,
+          range: 'Network Terms!A2:I',
+        }),
+        sheets.spreadsheets.values.get({
+          spreadsheetId: process.env.CASH_FLOW_PROJECTIONS_EXTENDED_2024_SHEET_ID,
+          range: 'To Be Invoiced!A2:C',
+        }),
+        sheets.spreadsheets.values.get({
+          spreadsheetId: process.env.CASH_FLOW_PROJECTIONS_EXTENDED_2024_SHEET_ID,
+          range: 'Invoices!A2:C',
+        }),
+        sheets.spreadsheets.values.get({
+          spreadsheetId: process.env.CASH_FLOW_PROJECTIONS_EXTENDED_2024_SHEET_ID,
+          range: 'Paid Invoices!A2:C',
+        }),
+      ]);
+
+      console.log('API: Data fetched successfully');
+
+      const response = NextResponse.json({
+        networkTerms: networkTerms.data.values || [],
+        toBeInvoiced: toBeInvoiced.data.values || [],
+        invoices: invoices.data.values || [],
+        paidInvoices: paidInvoices.data.values || []
       });
 
-      await sheets.spreadsheets.values.update({
-        spreadsheetId: sheetId,
-        range: 'Paid Invoices!A1:C1',
-        valueInputOption: 'RAW',
-        requestBody: {
-          values: [['Network', 'Amount', 'Due Date']]
-        }
+      response.headers.set('Access-Control-Allow-Origin', '*');
+      return response;
+
+    } catch (fetchError) {
+      console.error('API: Sheet fetch error:', {
+        message: fetchError.message,
+        code: fetchError.code,
+        details: fetchError.response?.data?.error
       });
-    } catch {
-      // Skip error handling for sheet creation
+      throw fetchError;
     }
 
-    const [networkTerms, toBeInvoiced, invoices, paidInvoices] = await Promise.all([
-      sheets.spreadsheets.values.get({
-        spreadsheetId: sheetId,
-        range: 'Network Terms!A2:I',
-      }),
-      sheets.spreadsheets.values.get({
-        spreadsheetId: sheetId,
-        range: 'To Be Invoiced!A2:C',
-      }),
-      sheets.spreadsheets.values.get({
-        spreadsheetId: sheetId,
-        range: 'Invoices!A2:C',
-      }),
-      sheets.spreadsheets.values.get({
-        spreadsheetId: sheetId,
-        range: 'Paid Invoices!A2:C',
-      }),
-    ]);
-
-    const processedNetworkTerms = (networkTerms.data.values || []).map(row => ({
-      network: row[0] || '',
-      offer: row[1] || '',
-      payPeriod: parseFloat(row[2]) || 0,
-      netTerms: parseInt(row[3]) || 0,
-      periodStart: row[4] || '',
-      periodEnd: row[5] || '',
-      invoiceDue: row[6] || '',
-      runningTotal: parseFloat(row[7]?.replace(/[$,]/g, '') || '0') || 0
-    }));
-
-    const processAmount = (value: string) => {
-      const cleanValue = value.replace(/[$,]/g, '');
-      return parseFloat(cleanValue) || 0;
-    };
-
-    const response = NextResponse.json({
-      networkTerms: processedNetworkTerms,
-      toBeInvoiced: (toBeInvoiced.data.values || []).map(row => ({
-        network: row[0] || '',
-        amount: processAmount(row[1]),
-        dueDate: row[2] || ''
-      })),
-      invoices: (invoices.data.values || []).map(row => ({
-        network: row[0] || '',
-        amount: processAmount(row[1]),
-        dueDate: row[2] || ''
-      })),
-      paidInvoices: (paidInvoices.data.values || []).map(row => ({
-        network: row[0] || '',
-        amount: processAmount(row[1]),
-        dueDate: row[2] || ''
-      }))
-    });
-
-    response.headers.set('Access-Control-Allow-Origin', '*');
-    response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    response.headers.set('Access-Control-Allow-Headers', 'Content-Type');
-
-    return response;
   } catch (error) {
-    console.error('Network data error:', error);
-    return NextResponse.json({
-      networkTerms: [],
-      toBeInvoiced: [],
-      invoices: [],
-      paidInvoices: []
+    console.error('API: Fatal error:', {
+      name: error.name,
+      message: error.message,
+      code: error.code,
+      details: error.response?.data?.error
     });
+
+    return NextResponse.json(
+      { error: 'Failed to fetch sheet data: ' + error.message },
+      { status: 500 }
+    );
   }
 }
 
