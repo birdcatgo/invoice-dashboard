@@ -1,6 +1,19 @@
 import { google } from 'googleapis';
 import { NextResponse } from 'next/server';
 
+interface GoogleAPIError {
+  message?: string;
+  code?: string | number;
+  status?: number;
+  response?: {
+    data?: {
+      error?: {
+        message?: string;
+      };
+    };
+  };
+}
+
 export async function GET() {
   // First, properly format the private key
   const privateKey = process.env.GOOGLE_SHEETS_PRIVATE_KEY
@@ -56,19 +69,17 @@ export async function GET() {
       networkTerms: acaTrackingResponse.data.values,
     });
   } catch (error) {
+    const apiError = error as GoogleAPIError;
     console.error('API Error:', {
-      message: error.message,
-      code: error.code,
-      status: error.status,
-      details: error.response?.data?.error?.message
+      message: apiError.message,
+      code: apiError.code,
+      status: apiError.status,
+      details: apiError.response?.data?.error?.message
     });
-    
+
     return NextResponse.json(
-      { 
-        error: 'Authentication failed',
-        details: error.response?.data?.error?.message || error.message
-      },
-      { status: 401 }
+      { error: 'Failed to fetch sheet data' },
+      { status: 500 }
     );
   }
 }
