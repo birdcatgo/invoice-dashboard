@@ -68,7 +68,7 @@ export interface NetworkConfig {
   export interface NetworkTerms {
     network: string;
     offer: string;
-    payPeriod: string;
+    payPeriod: number;
     netTerms: number;
     periodStart: string;
     periodEnd: string;

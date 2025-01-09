@@ -1,5 +1,5 @@
 import { getActiveNetworksWithTotals } from '@/lib/data';
-import { getPSTDateRange } from '@/lib/utils';
+import { getPSTDateRange, formatCurrency } from '@/lib/utils';
 
 export default async function ActiveNetworksPage() {
   const targetDate = new Date('2024-01-06');
@@ -25,7 +25,7 @@ export default async function ActiveNetworksPage() {
             {networks.map((network, index) => (
               <tr key={index} className="border-b">
                 <td className="py-2">{network.network}</td>
-                <td className="py-2 text-right">${network.total.toFixed(2)}</td>
+                <td className="py-2 text-right">{formatCurrency(network.runningTotal)}</td>
               </tr>
             ))}
           </tbody>
