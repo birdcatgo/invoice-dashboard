@@ -12,15 +12,11 @@ interface NetworkData {
 }
 
 export async function GET() {
-  console.log('API: Starting request', {
-    environment: process.env.NODE_ENV,
-    sheetId: process.env.CASH_FLOW_PROJECTIONS_EXTENDED_2024_SHEET_ID?.slice(0, 5) + '...',
-    hasGoogleCreds: !!process.env.GOOGLE_SHEETS_CLIENT_EMAIL && !!process.env.GOOGLE_SHEETS_PRIVATE_KEY
-  });
+  process.stdout.write('API: Starting request\n');
   
   try {
     const sheets = await getGoogleSheets();
-    console.log('API: Got sheets client');
+    process.stdout.write('API: Got sheets client\n');
 
     const [networkTerms, toBeInvoiced, invoices, paidInvoices] = await Promise.all([
       sheets.spreadsheets.values.get({
@@ -78,23 +74,19 @@ export async function GET() {
       paidInvoices: transformInvoices(paidInvoices.data.values || [])
     };
 
-    console.log('API Response Data Stats:', {
-      networkTermsCount: responseData.networkTerms.length,
-      toBeInvoicedCount: responseData.toBeInvoiced.length,
-      invoicesCount: responseData.invoices.length,
-      paidInvoicesCount: responseData.paidInvoices.length
-    });
+    process.stdout.write(`API: Data transformed - Counts: ${JSON.stringify({
+      networkTerms: responseData.networkTerms.length,
+      toBeInvoiced: responseData.toBeInvoiced.length,
+      invoices: responseData.invoices.length,
+      paidInvoices: responseData.paidInvoices.length
+    })}\n`);
 
     const response = NextResponse.json(responseData);
     response.headers.set('Access-Control-Allow-Origin', '*');
     return response;
 
   } catch (err) {
-    console.error('API Error:', {
-      error: err,
-      environment: process.env.NODE_ENV,
-      hasGoogleCreds: !!process.env.GOOGLE_SHEETS_CLIENT_EMAIL && !!process.env.GOOGLE_SHEETS_PRIVATE_KEY
-    });
+    process.stdout.write(`API Error: ${err instanceof Error ? err.message : 'Unknown error'}\n`);
     return NextResponse.json(
       { error: 'Failed to fetch data' },
       { status: 500 }
