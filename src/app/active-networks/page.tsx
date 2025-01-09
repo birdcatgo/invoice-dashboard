@@ -1,6 +1,9 @@
 import { getActiveNetworksWithTotals } from '@/lib/data';
 import { getPSTDateRange, formatCurrency } from '@/lib/utils';
 
+export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
+
 export default async function ActiveNetworksPage() {
   const targetDate = new Date('2024-01-06');
   const { displayRange } = getPSTDateRange(targetDate);
