@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Transaction, NetworkPaymentTerms } from '@/lib/types';
 
-interface SheetData {
+interface SheetRow {
   [key: string]: string | number;
 }
 
-export function useSheetData<T extends SheetData>() {
+export function useSheetData() {
   const [data, setData] = useState<{
     transactions: Transaction[];
     networkTerms: NetworkPaymentTerms[];
@@ -29,25 +29,25 @@ export function useSheetData<T extends SheetData>() {
         const json = await response.json();
 
         // Process transactions
-        const transactions: Transaction[] = json.cashFlow.slice(1).map((row: any[]) => ({
-          date: row[0],
-          network: row[1],
-          offer: row[2],
-          mediaBuyer: row[3],
-          adSpend: parseFloat(row[4].replace('$', '').replace(',', '')),
-          adRevenue: parseFloat(row[5].replace('$', '').replace(',', '')),
-          commentRevenue: parseFloat(row[6].replace('$', '').replace(',', '')),
-          totalRevenue: parseFloat(row[7].replace('$', '').replace(',', '')),
-          margin: parseFloat(row[8].replace('$', '').replace(',', '')),
-          expectedPayment: row[9]
+        const transactions: Transaction[] = json.cashFlow.slice(1).map((row: SheetRow) => ({
+          date: row[0] as string,
+          network: row[1] as string,
+          offer: row[2] as string,
+          mediaBuyer: row[3] as string,
+          adSpend: parseFloat((row[4] as string).replace('$', '').replace(',', '')),
+          adRevenue: parseFloat((row[5] as string).replace('$', '').replace(',', '')),
+          commentRevenue: parseFloat((row[6] as string).replace('$', '').replace(',', '')),
+          totalRevenue: parseFloat((row[7] as string).replace('$', '').replace(',', '')),
+          margin: parseFloat((row[8] as string).replace('$', '').replace(',', '')),
+          expectedPayment: row[9] as string
         }));
 
         // Process network terms
-        const networkTerms: NetworkPaymentTerms[] = json.networkTerms.slice(1).map((row: any[]) => ({
-          name: row[0],
-          netTerms: parseInt(row[1]),
-          payPeriod: row[2].toLowerCase() as 'weekly' | 'monthly',
-          otherBusinessNames: row[3] || undefined
+        const networkTerms: NetworkPaymentTerms[] = json.networkTerms.slice(1).map((row: SheetRow) => ({
+          name: row[0] as string,
+          netTerms: parseInt(row[1] as string),
+          payPeriod: (row[2] as string).toLowerCase() as 'weekly' | 'monthly',
+          otherBusinessNames: row[3] as string | undefined
         }));
 
         setData({
