@@ -2,8 +2,8 @@ import { NextResponse } from 'next/server';
 import { getGoogleSheets } from '@/lib/sheets';
 import { NetworkTerms, Invoice } from '@/lib/types';
 
-interface SheetRow {
-  [key: string]: string | number;
+interface GoogleSheetRow {
+  [index: number]: string;
 }
 
 export async function GET() {
@@ -41,7 +41,7 @@ export async function GET() {
       return isNaN(number) ? 0 : number;
     };
 
-    const transformNetworkTerms = (rows: any[]): NetworkTerms[] => {
+    const transformNetworkTerms = (rows: GoogleSheetRow[]): NetworkTerms[] => {
       return (rows || []).map(row => ({
         network: row[0] || '',
         offer: row[1] || '',
@@ -54,7 +54,7 @@ export async function GET() {
       }));
     };
 
-    const transformInvoices = (rows: any[]): Invoice[] => {
+    const transformInvoices = (rows: GoogleSheetRow[]): Invoice[] => {
       return (rows || []).map(row => ({
         network: row[0] || '',
         amount: parseAmount(row[1]),
@@ -62,21 +62,21 @@ export async function GET() {
       }));
     };
 
-    const data = {
+    const responseData = {
       networkTerms: transformNetworkTerms(networkTerms.data.values || []),
       toBeInvoiced: transformInvoices(toBeInvoiced.data.values || []),
       invoices: transformInvoices(invoices.data.values || []),
       paidInvoices: transformInvoices(paidInvoices.data.values || [])
     };
 
-    console.log('API Response Data:', data);
+    console.log('API Response Data:', responseData);
 
-    const response = NextResponse.json(data);
+    const response = NextResponse.json(responseData);
     response.headers.set('Access-Control-Allow-Origin', '*');
     return response;
 
-  } catch (error) {
-    console.error('API Error:', error);
+  } catch (err) {
+    console.error('API Error:', err);
     return NextResponse.json(
       { error: 'Failed to fetch data' },
       { status: 500 }
