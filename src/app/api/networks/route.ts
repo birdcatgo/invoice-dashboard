@@ -42,6 +42,13 @@ export async function GET() {
       }),
     ]);
 
+    console.log('Raw Sheet Data:', {
+      networkTermsLength: networkTerms.data.values?.length || 0,
+      toBeInvoicedLength: toBeInvoiced.data.values?.length || 0,
+      invoicesLength: invoices.data.values?.length || 0,
+      paidInvoicesLength: paidInvoices.data.values?.length || 0
+    });
+
     // Helper function to parse numbers from strings
     const parseAmount = (value: string | undefined): number => {
       if (!value) return 0;
