@@ -12,7 +12,11 @@ interface NetworkData {
 }
 
 export async function GET() {
-  console.log('API: Starting request');
+  console.log('API: Starting request', {
+    environment: process.env.NODE_ENV,
+    sheetId: process.env.CASH_FLOW_PROJECTIONS_EXTENDED_2024_SHEET_ID?.slice(0, 5) + '...',
+    hasGoogleCreds: !!process.env.GOOGLE_SHEETS_CLIENT_EMAIL && !!process.env.GOOGLE_SHEETS_PRIVATE_KEY
+  });
   
   try {
     const sheets = await getGoogleSheets();
@@ -74,14 +78,23 @@ export async function GET() {
       paidInvoices: transformInvoices(paidInvoices.data.values || [])
     };
 
-    console.log('API Response Data:', responseData);
+    console.log('API Response Data Stats:', {
+      networkTermsCount: responseData.networkTerms.length,
+      toBeInvoicedCount: responseData.toBeInvoiced.length,
+      invoicesCount: responseData.invoices.length,
+      paidInvoicesCount: responseData.paidInvoices.length
+    });
 
     const response = NextResponse.json(responseData);
     response.headers.set('Access-Control-Allow-Origin', '*');
     return response;
 
   } catch (err) {
-    console.error('API Error:', err);
+    console.error('API Error:', {
+      error: err,
+      environment: process.env.NODE_ENV,
+      hasGoogleCreds: !!process.env.GOOGLE_SHEETS_CLIENT_EMAIL && !!process.env.GOOGLE_SHEETS_PRIVATE_KEY
+    });
     return NextResponse.json(
       { error: 'Failed to fetch data' },
       { status: 500 }
