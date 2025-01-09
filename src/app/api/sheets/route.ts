@@ -15,62 +15,64 @@ interface GoogleAPIError {
 }
 
 export async function GET() {
-  // First, properly format the private key
+  // Check required environment variables
+  if (!process.env.GOOGLE_SHEETS_CLIENT_EMAIL) {
+    console.error('Missing GOOGLE_SHEETS_CLIENT_EMAIL');
+    return NextResponse.json({ error: 'Missing credentials' }, { status: 500 });
+  }
+
+  if (!process.env.GOOGLE_SHEETS_PRIVATE_KEY) {
+    console.error('Missing GOOGLE_SHEETS_PRIVATE_KEY');
+    return NextResponse.json({ error: 'Missing credentials' }, { status: 500 });
+  }
+
+  if (!process.env.CASH_FLOW_PROJECTIONS_EXTENDED_2024_SHEET_ID) {
+    console.error('Missing CASH_FLOW_PROJECTIONS_EXTENDED_2024_SHEET_ID');
+    return NextResponse.json({ error: 'Missing sheet ID' }, { status: 500 });
+  }
+
+  // Format private key
   const privateKey = process.env.GOOGLE_SHEETS_PRIVATE_KEY
-    ?.replace(/\\n/g, '\n')
-    ?.replace(/\n/g, '\n');  // Handle any additional escaping
-
-  // Log the first and last few characters of credentials (safely)
-  console.log('Credentials check:', {
-    clientEmail: {
-      exists: !!process.env.GOOGLE_SHEETS_CLIENT_EMAIL,
-      start: process.env.GOOGLE_SHEETS_CLIENT_EMAIL?.slice(0, 5),
-    },
-    privateKey: {
-      exists: !!privateKey,
-      startsWithHeader: privateKey?.startsWith('-----BEGIN PRIVATE KEY-----'),
-      endsWithFooter: privateKey?.endsWith('-----END PRIVATE KEY-----\n'),
-    }
-  });
-
-  const auth = new google.auth.GoogleAuth({
-    credentials: {
-      client_email: process.env.GOOGLE_SHEETS_CLIENT_EMAIL,
-      private_key: privateKey,
-    },
-    scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
-  });
+    .replace(/\\n/g, '\n')
+    .replace(/\n/g, '\n');
 
   try {
-    // Create sheets instance
-    const sheets = google.sheets({ version: 'v4', auth });
-
-    // Test authentication with minimal request
-    const test = await sheets.spreadsheets.get({
-      spreadsheetId: process.env.CASH_FLOW_PROJECTIONS_EXTENDED_2024_SHEET_ID,
-      fields: 'spreadsheetId' // Request minimal data
+    const auth = new google.auth.GoogleAuth({
+      credentials: {
+        client_email: process.env.GOOGLE_SHEETS_CLIENT_EMAIL,
+        private_key: privateKey,
+      },
+      scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
     });
 
-    console.log('Authentication successful:', test.data.spreadsheetId);
+    const sheets = google.sheets({ version: 'v4', auth });
 
-    const [cashFlowResponse, acaTrackingResponse] = await Promise.all([
+    // Fetch data
+    const [cashFlowResponse, networkTermsResponse] = await Promise.all([
       sheets.spreadsheets.values.get({
         spreadsheetId: process.env.CASH_FLOW_PROJECTIONS_EXTENDED_2024_SHEET_ID,
         range: 'Main Sheet!A:K',
       }),
       sheets.spreadsheets.values.get({
-        spreadsheetId: process.env.ACA_TRACKING_SHEET_ID,
-        range: 'raw data!A:C',
+        spreadsheetId: process.env.CASH_FLOW_PROJECTIONS_EXTENDED_2024_SHEET_ID,
+        range: 'Network Terms!A2:I',
       }),
     ]);
 
+    // Validate responses
+    if (!cashFlowResponse.data.values || !networkTermsResponse.data.values) {
+      console.error('No data returned from sheets');
+      return NextResponse.json({ error: 'No data found' }, { status: 404 });
+    }
+
     return NextResponse.json({
       cashFlow: cashFlowResponse.data.values,
-      networkTerms: acaTrackingResponse.data.values,
+      networkTerms: networkTermsResponse.data.values,
     });
+
   } catch (error) {
     const apiError = error as GoogleAPIError;
-    console.error('API Error:', {
+    console.error('Sheets API Error:', {
       message: apiError.message,
       code: apiError.code,
       status: apiError.status,

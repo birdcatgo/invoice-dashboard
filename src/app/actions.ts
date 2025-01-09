@@ -4,11 +4,17 @@ import { DashboardData } from '@/lib/types';
 
 export async function getDashboardData(): Promise<DashboardData> {
   try {
-    // For Vercel, use relative URL which will be automatically resolved
-    const response = await fetch(process.env.VERCEL_URL 
-      ? 'https://invoice-dashboard-birdcatgo.vercel.app/api/networks'
-      : 'http://localhost:3002/api/networks', {
-      cache: 'no-store'
+    // Get the base URL from environment variables
+    const baseUrl = process.env.VERCEL_URL 
+      ? `https://${process.env.VERCEL_URL}`
+      : process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002';
+
+    // Use absolute URL for API request
+    const response = await fetch(`${baseUrl}/api/networks`, {
+      cache: 'no-store',
+      headers: {
+        'Content-Type': 'application/json',
+      },
     });
     
     if (!response.ok) {
