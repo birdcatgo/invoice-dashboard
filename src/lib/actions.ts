@@ -5,7 +5,7 @@ import { headers } from 'next/headers';
 
 export async function getDashboardData(): Promise<DashboardData> {
   try {
-    const headersList = headers();
+    const headersList = await headers();
     const host = headersList.get('host') || 'localhost:3000';
     const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
     const apiUrl = `${protocol}://${host}/api/networks`;
