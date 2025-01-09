@@ -1,18 +1,27 @@
 'use client';
 
+import { ReactNode } from 'react';
+import PageHeader from './PageHeader';
+
 interface Props {
   title: string;
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 export default function InvoicePageLayout({ title, children }: Props) {
+  const handleRefresh = () => {
+    window.location.reload();
+  };
+
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">{title}</h1>
-      </div>
-      <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-        {children}
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-6 py-6">
+        <PageHeader title={title} onRefresh={handleRefresh} />
+        <div className="bg-white rounded-lg shadow-sm">
+          <div className="px-6 py-5">
+            {children}
+          </div>
+        </div>
       </div>
     </div>
   );

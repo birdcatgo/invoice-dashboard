@@ -1,8 +1,7 @@
 'use client';
 
-import { useState } from 'react';
 import { NetworkTerms } from '@/lib/types';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, formatDate } from '@/lib/utils';
 
 interface Props {
   networkTerms: NetworkTerms[];
@@ -22,74 +21,39 @@ function formatNetTerms(days: number): string {
 }
 
 export default function NetworkTermsTable({ networkTerms }: Props) {
-  const [sortField, setSortField] = useState<keyof NetworkTerms>('network');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
-
-  const sortedTerms = [...networkTerms].sort((a, b) => {
-    if (sortField === 'runningTotal' || sortField === 'payPeriod' || sortField === 'netTerms') {
-      const aValue = Number(a[sortField]) || 0;
-      const bValue = Number(b[sortField]) || 0;
-      return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
-    }
-    return sortDirection === 'asc'
-      ? String(a[sortField] || '').localeCompare(String(b[sortField] || ''))
-      : String(b[sortField] || '').localeCompare(String(a[sortField] || ''));
-  });
-
-  const handleSort = (field: keyof NetworkTerms) => {
-    setSortDirection(current => 
-      sortField === field ? (current === 'asc' ? 'desc' : 'asc') : 'asc'
-    );
-    setSortField(field);
-  };
+  // Sort by running total in descending order
+  const sortedNetworks = [...networkTerms].sort((a, b) => b.runningTotal - a.runningTotal);
 
   return (
-    <div className="space-y-4">
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <table className="min-w-full">
-          <thead className="bg-gray-50">
-            <tr>
-              {[
-                ['network', 'Network'],
-                ['offer', 'Offer'],
-                ['payPeriod', 'Pay Period'],
-                ['netTerms', 'Net Terms'],
-                ['periodStart', 'Pay Period Start'],
-                ['periodEnd', 'Pay Period End'],
-                ['invoiceDue', 'Invoice Due'],
-                ['runningTotal', 'Running Total']
-              ].map(([key, label]) => (
-                <th 
-                  key={key}
-                  onClick={() => handleSort(key as keyof NetworkTerms)}
-                  className="px-6 py-3 text-left text-sm font-semibold text-gray-900 cursor-pointer hover:bg-gray-100"
-                >
-                  {label}
-                  {sortField === key && (
-                    <span className="ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
-                  )}
-                </th>
-              ))}
+    <div className="overflow-x-auto">
+      <table className="min-w-full divide-y divide-gray-200">
+        <thead className="bg-gray-50">
+          <tr>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Network</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Offer</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Pay Period</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Net Terms</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Period Start</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Period End</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Invoice Due</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Running Total</th>
+          </tr>
+        </thead>
+        <tbody className="bg-white divide-y divide-gray-200">
+          {sortedNetworks.map((term, index) => (
+            <tr key={index}>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{term.network}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{term.offer}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{formatPayPeriod(term.payPeriod)}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{formatNetTerms(term.netTerms)}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{formatDate(term.periodStart)}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{formatDate(term.periodEnd)}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{formatDate(term.invoiceDue)}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{formatCurrency(term.runningTotal)}</td>
             </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {sortedTerms.map((term, index) => (
-              <tr key={index} className="hover:bg-gray-50">
-                <td className="px-6 py-4 text-sm text-gray-900">{term.network}</td>
-                <td className="px-6 py-4 text-sm text-gray-900">{term.offer}</td>
-                <td className="px-6 py-4 text-sm text-gray-900">{formatPayPeriod(Number(term.payPeriod))}</td>
-                <td className="px-6 py-4 text-sm text-gray-900">{formatNetTerms(term.netTerms)}</td>
-                <td className="px-6 py-4 text-sm text-gray-900">{term.periodStart}</td>
-                <td className="px-6 py-4 text-sm text-gray-900">{term.periodEnd}</td>
-                <td className="px-6 py-4 text-sm text-gray-900">{term.invoiceDue}</td>
-                <td className="px-6 py-4 text-sm text-gray-900 text-right">
-                  {formatCurrency(term.runningTotal)}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 } 

@@ -1,38 +1,21 @@
 import { google } from 'googleapis';
 
 export async function getGoogleSheets() {
-  if (!process.env.GOOGLE_SHEETS_CLIENT_EMAIL) {
-    throw new Error('Missing GOOGLE_SHEETS_CLIENT_EMAIL');
-  }
-  if (!process.env.GOOGLE_SHEETS_PRIVATE_KEY) {
-    throw new Error('Missing GOOGLE_SHEETS_PRIVATE_KEY');
-  }
-
   try {
+    console.log('Initializing Google Sheets client...');
+    
     const auth = new google.auth.GoogleAuth({
       credentials: {
-        type: 'service_account',
-        project_id: process.env.GOOGLE_SHEETS_PROJECT_ID,
-        private_key: process.env.GOOGLE_SHEETS_PRIVATE_KEY.replace(/\\n/g, '\n'),
         client_email: process.env.GOOGLE_SHEETS_CLIENT_EMAIL,
-        token_uri: 'https://oauth2.googleapis.com/token',
+        private_key: process.env.GOOGLE_SHEETS_PRIVATE_KEY?.replace(/\\n/g, '\n'),
       },
-      scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+      scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
     });
 
-    const sheets = google.sheets({ version: 'v4', auth });
-    
-    // Test the connection
-    await sheets.spreadsheets.get({
-      spreadsheetId: process.env.CASH_FLOW_PROJECTIONS_EXTENDED_2024_SHEET_ID,
-    });
-
-    return sheets;
+    console.log('Auth created, getting sheets client...');
+    return google.sheets({ version: 'v4', auth });
   } catch (error) {
-    console.error('Sheets initialization error:', {
-      message: error.message,
-      stack: error.stack
-    });
+    console.error('Failed to initialize Google Sheets:', error);
     throw error;
   }
 } 

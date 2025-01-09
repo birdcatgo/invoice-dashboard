@@ -34,6 +34,9 @@ export interface NetworkConfig {
     amount: number;
     dueDate: string;
     notes?: string;
+    datePaid?: string;
+    status?: 'pending' | 'paid' | 'overdue';
+    amountPaid?: number;
   }
   
   export interface InvoicePeriod {

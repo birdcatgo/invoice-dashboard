@@ -1,6 +1,6 @@
 // This is a Server Component
-import { getDashboardData } from '@/app/actions';
-import ToBeInvoicedClient from './client';
+import { getDashboardData } from '@/lib/actions';
+import ToBeInvoicedClient from '../_components/ToBeInvoicedClient';
 
 export default async function ToBeInvoicedPage() {
   const data = await getDashboardData();

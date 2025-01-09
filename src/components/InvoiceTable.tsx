@@ -1,135 +1,151 @@
-'use client'
+'use client';
 
-import { useState, useCallback } from 'react';
-import { formatCurrency, formatDate } from '@/lib/utils';
+import { useState } from 'react';
 import { Invoice } from '@/lib/types';
+import { formatCurrency, formatDate, getInvoiceStatusColor } from '@/lib/utils';
 
-type SortField = 'network' | 'amount' | 'dueDate';
-type SortDirection = 'asc' | 'desc';
-
-interface InvoiceTableProps {
+interface Props {
   invoices: Invoice[];
   onAction?: (invoice: Invoice) => void;
   actionLabel?: string;
   actionClass?: string;
+  showStatus?: boolean;
 }
 
-export default function InvoiceTable({ 
+export function InvoiceTable({ 
   invoices, 
   onAction, 
-  actionLabel,
-  actionClass = "text-indigo-600 hover:text-indigo-900"
-}: InvoiceTableProps) {
-  const [sortField, setSortField] = useState<SortField>('dueDate');
-  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
-  const [searchTerm, setSearchTerm] = useState('');
+  actionLabel = "Action",
+  actionClass = "text-blue-600 hover:text-blue-900",
+  showStatus = false 
+}: Props) {
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingField, setEditingField] = useState<'notes' | 'datePaid' | 'amountPaid' | null>(null);
+  const [editValue, setEditValue] = useState('');
 
-  const handleSort = useCallback((field: SortField) => {
-    setSortDirection(current => 
-      sortField === field ? (current === 'asc' ? 'desc' : 'asc') : 'asc'
-    );
-    setSortField(field);
-  }, [sortField]);
+  const handleEdit = (invoice: Invoice, field: 'notes' | 'datePaid' | 'amountPaid') => {
+    setEditingId(invoice.network);
+    setEditingField(field);
+    setEditValue(invoice[field]?.toString() || '');
+  };
 
-  const filteredAndSortedInvoices = [...invoices]
-    .filter(invoice => 
-      invoice.network.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      formatDate(invoice.dueDate).includes(searchTerm)
-    )
-    .sort((a, b) => {
-      if (sortField === 'amount') {
-        return sortDirection === 'asc' ? a.amount - b.amount : b.amount - a.amount;
-      }
-      if (sortField === 'dueDate') {
-        return sortDirection === 'asc' 
-          ? new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()
-          : new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime();
-      }
-      return sortDirection === 'asc'
-        ? a[sortField].localeCompare(b[sortField])
-        : b[sortField].localeCompare(a[sortField]);
-    });
+  const handleSave = async (invoice: Invoice) => {
+    if (!editingField) return;
 
-  const totalAmount = filteredAndSortedInvoices.reduce((sum, inv) => sum + inv.amount, 0);
+    try {
+      const updatedInvoice = {
+        ...invoice,
+        [editingField]: editValue
+      };
+
+      const response = await fetch('/api/invoices', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'update',
+          field: editingField,
+          invoice: updatedInvoice
+        })
+      });
+
+      if (!response.ok) throw new Error('Failed to update');
+      window.location.reload();
+    } catch (error) {
+      console.error('Error updating:', error);
+    }
+
+    setEditingId(null);
+    setEditingField(null);
+  };
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <div className="relative">
-          <input
-            type="text"
-            placeholder="Search..."
-            className="px-4 py-2 border rounded-md"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-        <div className="text-lg font-semibold">
-          Total: {formatCurrency(totalAmount)}
-        </div>
-      </div>
+    <div className="overflow-x-auto">
+      <table className="min-w-full divide-y divide-gray-200">
+        <thead className="bg-gray-50">
+          <tr>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Network</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Due Date</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date Paid</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amount Paid</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Notes</th>
+            {onAction && <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>}
+          </tr>
+        </thead>
+        <tbody>
+          {invoices.map((invoice, index) => {
+            const statusColor = getInvoiceStatusColor(invoice.dueDate);
+            const rowClass = statusColor.replace('text-', 'bg-').replace('-600', '-50');
 
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <table className="min-w-full">
-          <thead className="bg-gray-50">
-            <tr>
-              <th 
-                className="px-6 py-3 text-left text-sm font-semibold text-gray-900 cursor-pointer hover:bg-gray-100"
-                onClick={() => handleSort('network')}
-              >
-                Network
-                {sortField === 'network' && (
-                  <span className="ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
-                )}
-              </th>
-              <th 
-                className="px-6 py-3 text-right text-sm font-semibold text-gray-900 cursor-pointer hover:bg-gray-100"
-                onClick={() => handleSort('amount')}
-              >
-                Amount
-                {sortField === 'amount' && (
-                  <span className="ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
-                )}
-              </th>
-              <th 
-                className="px-6 py-3 text-left text-sm font-semibold text-gray-900 cursor-pointer hover:bg-gray-100"
-                onClick={() => handleSort('dueDate')}
-              >
-                Due Date
-                {sortField === 'dueDate' && (
-                  <span className="ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
-                )}
-              </th>
-              {onAction && (
-                <th className="px-6 py-3 text-right text-sm font-semibold text-gray-900">
-                  Actions
-                </th>
-              )}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {filteredAndSortedInvoices.map((invoice, index) => (
-              <tr key={index} className="hover:bg-gray-50">
+            return (
+              <tr key={index} className={rowClass}>
                 <td className="px-6 py-4 text-sm text-gray-900">{invoice.network}</td>
-                <td className="px-6 py-4 text-sm text-gray-900 text-right">
-                  {formatCurrency(invoice.amount)}
+                <td className="px-6 py-4 text-sm text-gray-900">{formatCurrency(invoice.amount)}</td>
+                <td className={`px-6 py-4 text-sm ${statusColor}`}>{formatDate(invoice.dueDate)}</td>
+                <td className={`px-6 py-4 text-sm ${statusColor}`}>
+                  {invoice.status || (new Date(invoice.dueDate) < new Date() ? 'Overdue' : 'Not Due')}
                 </td>
-                <td className="px-6 py-4 text-sm text-gray-900">{formatDate(invoice.dueDate)}</td>
+                <td className="px-6 py-4 text-sm">
+                  {editingId === invoice.network && editingField === 'datePaid' ? (
+                    <input
+                      type="date"
+                      value={editValue}
+                      onChange={(e) => setEditValue(e.target.value)}
+                      onBlur={() => handleSave(invoice)}
+                      className="border rounded px-2 py-1"
+                      autoFocus
+                    />
+                  ) : (
+                    <div onClick={() => handleEdit(invoice, 'datePaid')} className="cursor-pointer hover:text-blue-600">
+                      {invoice.datePaid ? formatDate(invoice.datePaid) : '-'}
+                    </div>
+                  )}
+                </td>
+                <td className="px-6 py-4 text-sm">
+                  {editingId === invoice.network && editingField === 'amountPaid' ? (
+                    <input
+                      type="number"
+                      value={editValue}
+                      onChange={(e) => setEditValue(e.target.value)}
+                      onBlur={() => handleSave(invoice)}
+                      className="border rounded px-2 py-1"
+                      autoFocus
+                    />
+                  ) : (
+                    <div onClick={() => handleEdit(invoice, 'amountPaid')} className="cursor-pointer hover:text-blue-600">
+                      {invoice.amountPaid ? formatCurrency(invoice.amountPaid) : '-'}
+                    </div>
+                  )}
+                </td>
+                <td className="px-6 py-4 text-sm">
+                  {editingId === invoice.network && editingField === 'notes' ? (
+                    <input
+                      type="text"
+                      value={editValue}
+                      onChange={(e) => setEditValue(e.target.value)}
+                      onBlur={() => handleSave(invoice)}
+                      className="border rounded px-2 py-1"
+                      autoFocus
+                    />
+                  ) : (
+                    <div onClick={() => handleEdit(invoice, 'notes')} className="cursor-pointer hover:text-blue-600">
+                      {invoice.notes || '-'}
+                    </div>
+                  )}
+                </td>
                 {onAction && (
-                  <td className="px-6 py-4 text-sm text-right">
-                    <button
-                      onClick={() => onAction(invoice)}
-                      className={actionClass}
-                    >
+                  <td className="px-6 py-4 text-right">
+                    <button onClick={() => onAction(invoice)} className={`text-sm font-medium ${actionClass}`}>
                       {actionLabel}
                     </button>
                   </td>
                 )}
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            );
+          })}
+        </tbody>
+      </table>
     </div>
   );
 }

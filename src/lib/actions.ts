@@ -1,43 +1,44 @@
-'use client';
+'use server';
 
-import { Invoice } from './types';
+import { DashboardData } from './types';
+import { headers } from 'next/headers';
 
-export async function handleMarkAsInvoiced(invoice: Invoice) {
+export async function getDashboardData(): Promise<DashboardData> {
   try {
-    const response = await fetch('/api/invoices', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        action: 'markAsInvoiced',
-        invoice
-      }),
+    // Get the host from headers
+    const headersList = headers();
+    const host = headersList.get('host') || 'localhost:3000';
+    const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
+    const url = `${protocol}://${host}/api/networks`;
+
+    console.log('Fetching from:', url);
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+      cache: 'no-store',
+      next: { revalidate: 0 }
     });
 
-    if (!response.ok) throw new Error('Failed to mark as invoiced');
-    window.location.reload();
-  } catch (error) {
-    console.error('Error marking as invoiced:', error);
-  }
-}
+    if (!response.ok) {
+      console.error('Fetch error:', {
+        status: response.status,
+        statusText: response.statusText,
+        url
+      });
+      throw new Error(`Failed to fetch data: ${response.status}`);
+    }
 
-export async function handleMarkAsPaid(invoice: Invoice) {
-  try {
-    const response = await fetch('/api/invoices', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        action: 'markAsPaid',
-        invoice
-      }),
-    });
-
-    if (!response.ok) throw new Error('Failed to mark as paid');
-    window.location.reload();
+    const data = await response.json();
+    console.log('Fetched data:', data);
+    return data;
   } catch (error) {
-    console.error('Error marking as paid:', error);
+    console.error('Failed to fetch dashboard data:', error);
+    return {
+      networkTerms: [],
+      toBeInvoiced: [],
+      invoices: [],
+      paidInvoices: []
+    };
   }
 } 

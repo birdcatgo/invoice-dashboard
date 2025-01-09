@@ -1,5 +1,5 @@
-import { getDashboardData } from '@/app/actions';
-import PaidInvoicesClient from './client';
+import PaidInvoicesClient from '../_components/PaidInvoicesClient';
+import { getDashboardData } from '@/lib/actions';
 
 export default async function PaidInvoicesPage() {
   const data = await getDashboardData();

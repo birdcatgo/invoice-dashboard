@@ -11,10 +11,12 @@ interface Props {
 export default function PaidInvoicesClient({ data }: Props) {
   return (
     <InvoicePageLayout title="Recently Paid Invoices">
-      <ClientInvoiceTable 
-        invoices={data.paidInvoices}
-        showNotes={true}
-      />
+      <div className="space-y-8">
+        <ClientInvoiceTable 
+          invoices={data.paidInvoices}
+          showBasicInfo={true}
+        />
+      </div>
     </InvoicePageLayout>
   );
 } 

@@ -1,7 +1,7 @@
-import { getDashboardData } from '@/app/actions';
-import OutstandingClient from './outstanding-client';
+import OutstandingInvoicesClient from '../_components/OutstandingInvoicesClient';
+import { getDashboardData } from '@/lib/actions';
 
 export default async function OutstandingInvoicesPage() {
   const data = await getDashboardData();
-  return <OutstandingClient data={data} />;
+  return <OutstandingInvoicesClient data={data} />;
 } 

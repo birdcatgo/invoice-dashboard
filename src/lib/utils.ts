@@ -54,13 +54,14 @@ export function formatDate(date: string | Date | null | undefined): string {
   }
 }
 
-export function formatCurrency(amount: number): string {
+export const formatCurrency = (amount: number): string => {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
-    minimumFractionDigits: 2
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
   }).format(amount);
-}
+};
 
 export function calculateDaysBetween(startDate: Date, endDate: Date): number {
   return Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
@@ -93,7 +94,21 @@ export function formatPSTDate(date: Date): string {
 }
 
 export function getInvoiceStatusColor(dueDate: string): string {
-  return isOverdue(dueDate) 
-    ? 'text-red-600 font-medium'  // Overdue
-    : 'text-gray-900';            // Not due yet
+  const today = new Date();
+  const due = new Date(dueDate);
+  const daysUntilDue = Math.ceil((due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+
+  if (daysUntilDue < 0) return 'text-red-600 font-medium'; // Overdue
+  if (daysUntilDue <= 7) return 'text-yellow-600 font-medium'; // Due soon
+  return 'text-green-600'; // Not due yet
+}
+
+export function getInvoiceStatus(dueDate: string): string {
+  const today = new Date();
+  const due = new Date(dueDate);
+  const daysUntilDue = Math.ceil((due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+
+  if (daysUntilDue < 0) return 'Overdue';
+  if (daysUntilDue <= 7) return 'Due Soon';
+  return 'Not Due';
 }
