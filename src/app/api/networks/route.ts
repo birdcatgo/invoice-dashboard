@@ -32,23 +32,32 @@ export async function GET() {
       }),
     ]);
 
-    const transformNetworkTerms = (rows: SheetRow[]): NetworkTerms[] => {
+    // Helper function to parse numbers from strings
+    const parseAmount = (value: string | undefined): number => {
+      if (!value) return 0;
+      // Remove currency symbols and commas, then parse
+      const cleaned = value.replace(/[$,]/g, '');
+      const number = parseFloat(cleaned);
+      return isNaN(number) ? 0 : number;
+    };
+
+    const transformNetworkTerms = (rows: any[]): NetworkTerms[] => {
       return (rows || []).map(row => ({
         network: row[0] || '',
         offer: row[1] || '',
-        payPeriod: Number(row[2]),
-        netTerms: Number(row[3]),
+        payPeriod: parseAmount(row[2]),
+        netTerms: parseAmount(row[3]),
         periodStart: row[4] || '',
         periodEnd: row[5] || '',
         invoiceDue: row[6] || '',
-        runningTotal: Number(row[7])
+        runningTotal: parseAmount(row[7])
       }));
     };
 
-    const transformInvoices = (rows: SheetRow[]): Invoice[] => {
+    const transformInvoices = (rows: any[]): Invoice[] => {
       return (rows || []).map(row => ({
         network: row[0] || '',
-        amount: Number(row[1]),
+        amount: parseAmount(row[1]),
         dueDate: row[2] || ''
       }));
     };
@@ -59,6 +68,8 @@ export async function GET() {
       invoices: transformInvoices(invoices.data.values || []),
       paidInvoices: transformInvoices(paidInvoices.data.values || [])
     };
+
+    console.log('API Response Data:', data);
 
     const response = NextResponse.json(data);
     response.headers.set('Access-Control-Allow-Origin', '*');

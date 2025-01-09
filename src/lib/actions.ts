@@ -1,19 +1,14 @@
 'use server';
 
 import { DashboardData } from './types';
-import { headers } from 'next/headers';
 
 export async function getDashboardData(): Promise<DashboardData> {
   try {
-    // Get the host from headers
-    const headersList = headers();
-    const host = headersList.get('host') || 'localhost:3000';
-    const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
-    const url = `${protocol}://${host}/api/networks`;
-
-    console.log('Fetching from:', url);
-
-    const response = await fetch(url, {
+    const baseUrl = process.env.VERCEL_URL 
+      ? `https://${process.env.VERCEL_URL}`
+      : 'http://localhost:3000';
+      
+    const response = await fetch(`${baseUrl}/api/networks`, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
       cache: 'no-store',
@@ -23,14 +18,12 @@ export async function getDashboardData(): Promise<DashboardData> {
     if (!response.ok) {
       console.error('Fetch error:', {
         status: response.status,
-        statusText: response.statusText,
-        url
+        statusText: response.statusText
       });
       throw new Error(`Failed to fetch data: ${response.status}`);
     }
 
     const data = await response.json();
-    console.log('Fetched data:', data);
     return data;
   } catch (error) {
     console.error('Failed to fetch dashboard data:', error);
