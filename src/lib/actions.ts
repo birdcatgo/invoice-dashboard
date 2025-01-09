@@ -18,18 +18,12 @@ export async function getDashboardData(): Promise<DashboardData> {
     });
 
     if (!response.ok) {
-      process.stdout.write(`API Error: ${JSON.stringify({
-        status: response.status,
-        statusText: response.statusText,
-        url: apiUrl
-      })}\n`);
       throw new Error(`Failed to fetch data: ${response.status}`);
     }
 
     const data = await response.json();
     return data;
   } catch (error) {
-    process.stdout.write(`Data fetch error: ${error instanceof Error ? error.message : 'Unknown error'}\n`);
     return {
       networkTerms: [],
       toBeInvoiced: [],
