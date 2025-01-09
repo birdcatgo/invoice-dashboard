@@ -1,9 +1,17 @@
 import { NextResponse } from 'next/server';
 import { google } from 'googleapis';
+import { Invoice } from '@/lib/types';
+
+interface InvoiceAction {
+  action: 'markAsPaid' | 'markAsInvoiced';
+  invoice: Invoice;
+  amountPaid?: number;
+  datePaid?: string;
+}
 
 export async function POST(request: Request) {
   try {
-    const { action, invoice } = await request.json();
+    const data: InvoiceAction = await request.json();
     
     if (!process.env.CASH_FLOW_PROJECTIONS_EXTENDED_2024_SHEET_ID) {
       throw new Error('Missing spreadsheet ID');
@@ -20,12 +28,12 @@ export async function POST(request: Request) {
     const sheets = google.sheets({ version: 'v4', auth });
     const sheetId = process.env.CASH_FLOW_PROJECTIONS_EXTENDED_2024_SHEET_ID;
 
-    switch (action) {
+    switch (data.action) {
       case 'markAsInvoiced':
-        await moveInvoice(sheets, sheetId!, 'To Be Invoiced', 'Invoices', invoice);
+        await moveInvoice(sheets, sheetId!, 'To Be Invoiced', 'Invoices', data.invoice);
         break;
       case 'markAsPaid':
-        await moveInvoice(sheets, sheetId!, 'Invoices', 'Paid Invoices', invoice);
+        await moveInvoice(sheets, sheetId!, 'Invoices', 'Paid Invoices', data.invoice);
         break;
     }
 

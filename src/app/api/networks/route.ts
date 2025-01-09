@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { google } from 'googleapis';
-import { headers } from 'next/headers';
 
 export async function GET() {
   try {

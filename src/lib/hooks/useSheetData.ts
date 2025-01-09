@@ -1,7 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Transaction, NetworkPaymentTerms } from '@/lib/types';
 
-export function useSheetData() {
+interface SheetData {
+  [key: string]: string | number;
+}
+
+export function useSheetData<T extends SheetData>() {
   const [data, setData] = useState<{
     transactions: Transaction[];
     networkTerms: NetworkPaymentTerms[];
