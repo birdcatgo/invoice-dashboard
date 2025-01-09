@@ -12,11 +12,16 @@ interface NetworkData {
 }
 
 export async function GET() {
-  process.stdout.write('API: Starting request\n');
-  
   try {
+    // Log environment check
+    console.log('API Route Environment:', {
+      nodeEnv: process.env.NODE_ENV,
+      hasGoogleCreds: !!process.env.GOOGLE_SHEETS_CLIENT_EMAIL && !!process.env.GOOGLE_SHEETS_PRIVATE_KEY,
+      hasSheetId: !!process.env.CASH_FLOW_PROJECTIONS_EXTENDED_2024_SHEET_ID
+    });
+
     const sheets = await getGoogleSheets();
-    process.stdout.write('API: Got sheets client\n');
+    console.log('Sheets client initialized');
 
     const [networkTerms, toBeInvoiced, invoices, paidInvoices] = await Promise.all([
       sheets.spreadsheets.values.get({
@@ -85,10 +90,17 @@ export async function GET() {
     response.headers.set('Access-Control-Allow-Origin', '*');
     return response;
 
-  } catch (err) {
-    process.stdout.write(`API Error: ${err instanceof Error ? err.message : 'Unknown error'}\n`);
+  } catch (error) {
+    console.error('API Route Error:', {
+      message: error.message,
+      stack: error.stack
+    });
+    
     return NextResponse.json(
-      { error: 'Failed to fetch data' },
+      { 
+        error: 'Failed to fetch data',
+        details: error.message 
+      },
       { status: 500 }
     );
   }

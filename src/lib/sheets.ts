@@ -2,34 +2,37 @@ import { google } from 'googleapis';
 
 export async function getGoogleSheets() {
   try {
-    console.log('Initializing Google Sheets client...', {
+    if (!process.env.GOOGLE_SHEETS_CLIENT_EMAIL) {
+      throw new Error('Missing GOOGLE_SHEETS_CLIENT_EMAIL');
+    }
+    if (!process.env.GOOGLE_SHEETS_PRIVATE_KEY) {
+      throw new Error('Missing GOOGLE_SHEETS_PRIVATE_KEY');
+    }
+    if (!process.env.CASH_FLOW_PROJECTIONS_EXTENDED_2024_SHEET_ID) {
+      throw new Error('Missing SHEET_ID');
+    }
+
+    // Log environment info (will show in Vercel logs)
+    console.log('Environment:', {
+      nodeEnv: process.env.NODE_ENV,
       hasEmail: !!process.env.GOOGLE_SHEETS_CLIENT_EMAIL,
       hasKey: !!process.env.GOOGLE_SHEETS_PRIVATE_KEY,
-      environment: process.env.NODE_ENV
+      hasSheetId: !!process.env.CASH_FLOW_PROJECTIONS_EXTENDED_2024_SHEET_ID
     });
-    
-    if (!process.env.GOOGLE_SHEETS_CLIENT_EMAIL || !process.env.GOOGLE_SHEETS_PRIVATE_KEY) {
-      throw new Error('Missing Google Sheets credentials');
-    }
 
     const auth = new google.auth.GoogleAuth({
       credentials: {
         client_email: process.env.GOOGLE_SHEETS_CLIENT_EMAIL,
-        private_key: process.env.GOOGLE_SHEETS_PRIVATE_KEY?.replace(/\\n/g, '\n')
-          .replace(/\n/g, '\n')
-          .replace(/"/, ''),
+        private_key: process.env.GOOGLE_SHEETS_PRIVATE_KEY.replace(/\\n/g, '\n'),
       },
       scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
     });
 
-    console.log('Auth created, getting sheets client...');
     return google.sheets({ version: 'v4', auth });
   } catch (error) {
-    console.error('Failed to initialize Google Sheets:', {
-      error,
-      environment: process.env.NODE_ENV,
-      hasEmail: !!process.env.GOOGLE_SHEETS_CLIENT_EMAIL,
-      hasKey: !!process.env.GOOGLE_SHEETS_PRIVATE_KEY
+    console.error('Google Sheets initialization error:', {
+      message: error.message,
+      stack: error.stack
     });
     throw error;
   }
