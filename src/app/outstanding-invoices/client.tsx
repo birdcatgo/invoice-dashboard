@@ -3,12 +3,13 @@
 import { useState } from 'react';
 import { DashboardData, Invoice } from '@/lib/types';
 import ClientInvoiceTable from '@/components/ClientInvoiceTable';
+import InvoicePageLayout from '@/components/InvoicePageLayout';
 
 interface Props {
   data: DashboardData;
 }
 
-export default function OutstandingInvoicesClient({ data }: Props) {
+export default function OutstandingClient({ data }: Props) {
   const [isLoading, setIsLoading] = useState(false);
   const [invoices, setInvoices] = useState(data.invoices);
 
@@ -29,7 +30,9 @@ export default function OutstandingInvoicesClient({ data }: Props) {
       },
       body: JSON.stringify({
         action: 'markAsPaid',
-        invoice
+        invoice,
+        amountPaid,
+        datePaid
       }),
     })
     .then(response => {
@@ -45,8 +48,7 @@ export default function OutstandingInvoicesClient({ data }: Props) {
   };
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">Outstanding Invoices</h1>
+    <InvoicePageLayout title="Outstanding Invoices">
       <ClientInvoiceTable 
         invoices={invoices}
         onAction={onMarkAsPaid}
@@ -55,7 +57,8 @@ export default function OutstandingInvoicesClient({ data }: Props) {
         showStatus={true}
         showNotes={true}
         onNotesEdit={handleNotesEdit}
+        showPaymentDetails={true}
       />
-    </div>
+    </InvoicePageLayout>
   );
 } 
