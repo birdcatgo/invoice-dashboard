@@ -10,6 +10,9 @@ interface Props {
   actionClass?: string;
   showNotes?: boolean;
   showBasicInfo?: boolean;
+  onNotesEdit?: (invoice: Invoice, notes: string) => void;
+  isEditable?: boolean;
+  onAmountChange?: (invoice: Invoice, amount: number) => void;
 }
 
 export default function ClientInvoiceTable({
