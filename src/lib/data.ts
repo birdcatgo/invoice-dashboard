@@ -1,7 +1,7 @@
 import { NetworkTerms } from './types';
 import { getDashboardData } from '@/app/actions';
 
-export async function getActiveNetworksWithTotals(_date: Date): Promise<NetworkTerms[]> {
+export async function getActiveNetworksWithTotals(): Promise<NetworkTerms[]> {
   try {
     const data = await getDashboardData();
     

@@ -49,7 +49,7 @@ export function formatDate(date: string | Date | null | undefined): string {
       return 'Invalid date';
     }
     return format(date, 'dd/MM/yyyy');
-  } catch (_error) {
+  } catch {
     return 'Invalid date';
   }
 }

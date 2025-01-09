@@ -44,8 +44,8 @@ export async function GET() {
           values: [['Network', 'Amount', 'Due Date']]
         }
       });
-    } catch (_error) {
-      // Sheet might already exist, continue
+    } catch {
+      // Skip error handling for sheet creation
     }
 
     const [networkTerms, toBeInvoiced, invoices, paidInvoices] = await Promise.all([
