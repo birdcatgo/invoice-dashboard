@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { google } from 'googleapis';
+import { google, sheets_v4 } from 'googleapis';
 import { Invoice } from '@/lib/types';
 
 interface InvoiceAction {
@@ -44,7 +44,13 @@ export async function POST(request: Request) {
   }
 }
 
-async function moveInvoice(sheets: any, sheetId: string, fromSheet: string, toSheet: string, invoice: any) {
+async function moveInvoice(
+  sheets: sheets_v4.Sheets, 
+  sheetId: string, 
+  fromSheet: string, 
+  toSheet: string, 
+  invoice: Invoice
+) {
   // First, append to destination sheet
   await sheets.spreadsheets.values.append({
     spreadsheetId: sheetId,
@@ -69,15 +75,29 @@ async function moveInvoice(sheets: any, sheetId: string, fromSheet: string, toSh
   );
 
   if (rowIndex !== -1) {
+    // First get the sheet ID mapping
+    const spreadsheet = await sheets.spreadsheets.get({
+      spreadsheetId: sheetId,
+    });
+
+    const sourceSheet = spreadsheet.data.sheets?.find(
+      s => s.properties?.title === fromSheet
+    );
+
+    if (!sourceSheet?.properties?.sheetId) {
+      throw new Error(`Sheet ${fromSheet} not found`);
+    }
+
+    // Then use it in the batchUpdate
     await sheets.spreadsheets.batchUpdate({
       spreadsheetId: sheetId,
       requestBody: {
         requests: [{
           deleteDimension: {
             range: {
-              sheetId: fromSheet,
+              sheetId: sourceSheet.properties.sheetId,
               dimension: 'ROWS',
-              startIndex: rowIndex + 1, // +1 because of header row
+              startIndex: rowIndex + 1,
               endIndex: rowIndex + 2
             }
           }
