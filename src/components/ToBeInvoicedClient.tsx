@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { DashboardData } from '../lib/types';
+import { DashboardData, Invoice } from '../lib/types';
 import ClientInvoiceTable from './ClientInvoiceTable';
 import React from 'react';
 
@@ -11,7 +11,7 @@ interface Props {
 export default function ToBeInvoicedClient({ data }: Props) {
   const [isLoading, setIsLoading] = useState(false);
 
-  const onMarkAsInvoiced = (invoice: any) => {
+  const onMarkAsInvoiced = (invoice: Invoice) => {
     setIsLoading(true);
     fetch('/api/invoices', {
       method: 'POST',
@@ -34,6 +34,7 @@ export default function ToBeInvoicedClient({ data }: Props) {
       setIsLoading(false);
     });
   };
+
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-6">To Be Invoiced</h1>
