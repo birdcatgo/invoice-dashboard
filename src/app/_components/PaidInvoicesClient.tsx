@@ -11,7 +11,7 @@ interface Props {
 export default function PaidInvoicesClient({ data }: Props) {
   return (
     <InvoicePageLayout title="Recently Paid Invoices">
-      <div className="space-y-8">
+      <div className="space-y-4">
         <ClientInvoiceTable 
           invoices={data.paidInvoices}
           showBasicInfo={true}

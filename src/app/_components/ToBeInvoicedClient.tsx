@@ -14,7 +14,7 @@ export default function ToBeInvoicedClient({ data }: Props) {
 
   return (
     <InvoicePageLayout title="To Be Invoiced">
-      <div className="space-y-8">
+      <div className="space-y-4">
         <div className="max-w-sm">
           <TotalDisplay 
             label="Total To Be Invoiced" 

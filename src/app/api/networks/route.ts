@@ -2,6 +2,11 @@ import { NextResponse } from 'next/server';
 import { getGoogleSheets } from '@/lib/sheets';
 import { NetworkTerms, Invoice } from '@/lib/types';
 
+interface NetworkData {
+  name: string;
+  // add other network properties
+}
+
 export async function GET() {
   console.log('API: Starting request');
   
@@ -86,5 +91,15 @@ export async function GET() {
       { error: 'Failed to fetch data', details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
+  }
+}
+
+export async function POST(request: Request): Promise<Response> {
+  try {
+    const data: NetworkData = await request.json();
+    // ... rest of the function
+  }
+  catch (error) {
+    // ... error handling
   }
 } 

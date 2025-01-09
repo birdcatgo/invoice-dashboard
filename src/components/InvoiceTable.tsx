@@ -9,15 +9,17 @@ interface Props {
   onAction?: (invoice: Invoice) => void;
   actionLabel?: string;
   actionClass?: string;
-  showStatus?: boolean;
+  showNotes?: boolean;
+  showBasicInfo?: boolean;
 }
 
-export function InvoiceTable({ 
-  invoices, 
-  onAction, 
-  actionLabel = "Action",
-  actionClass = "text-blue-600 hover:text-blue-900",
-  showStatus = false 
+export default function InvoiceTable({
+  invoices,
+  onAction,
+  actionLabel = "Mark as Paid",
+  actionClass = "text-green-600 hover:text-green-900",
+  showNotes = false,
+  showBasicInfo = false
 }: Props) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingField, setEditingField] = useState<'notes' | 'datePaid' | 'amountPaid' | null>(null);

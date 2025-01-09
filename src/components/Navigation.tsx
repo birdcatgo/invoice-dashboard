@@ -5,19 +5,18 @@ import { usePathname } from 'next/navigation';
 
 export default function Navigation() {
   const pathname = usePathname();
-
   const isActive = (path: string) => pathname === path;
 
   return (
     <nav className="bg-white border-b border-gray-200">
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="flex justify-between h-16">
+      <div className="mx-auto px-3">
+        <div className="flex justify-between h-14">
           <div className="flex items-center">
-            <span className="text-lg font-semibold text-gray-900">
+            <span className="text-base font-medium text-gray-900">
               Convert 2 Freedom Accounts Receivable
             </span>
           </div>
-          <div className="flex space-x-8">
+          <div className="flex space-x-6">
             <Link 
               href="/"
               className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${

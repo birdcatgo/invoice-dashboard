@@ -45,7 +45,7 @@ export default function OutstandingInvoicesClient({ data }: Props) {
 
   return (
     <InvoicePageLayout title="Outstanding Invoices">
-      <div className="space-y-8">
+      <div className="space-y-4">
         <div className="max-w-sm">
           <TotalDisplay 
             label="Total Outstanding" 
