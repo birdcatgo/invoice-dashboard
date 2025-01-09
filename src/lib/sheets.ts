@@ -29,10 +29,14 @@ export async function getGoogleSheets() {
     });
 
     return google.sheets({ version: 'v4', auth });
-  } catch (error) {
+  } catch (error: unknown) {
+    // Type guard for Error object
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorStack = error instanceof Error ? error.stack : undefined;
+
     console.error('Google Sheets initialization error:', {
-      message: error.message,
-      stack: error.stack
+      message: errorMessage,
+      stack: errorStack
     });
     throw error;
   }
