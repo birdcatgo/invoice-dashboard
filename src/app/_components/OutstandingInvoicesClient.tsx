@@ -2,9 +2,8 @@
 
 import { useState } from 'react';
 import { DashboardData, Invoice } from '@/lib/types';
-import ClientInvoiceTable from '@/components/ClientInvoiceTable';
+import InvoiceTable from '@/components/InvoiceTable';
 import InvoicePageLayout from '@/components/InvoicePageLayout';
-import TotalDisplay from '@/components/TotalDisplay';
 
 interface Props {
   data: DashboardData;
@@ -12,14 +11,9 @@ interface Props {
 
 export default function OutstandingInvoicesClient({ data }: Props) {
   const [isLoading, setIsLoading] = useState(false);
-  const outstandingTotal = data.invoices.reduce((sum, inv) => sum + inv.amount, 0);
+  const totalOutstanding = data.invoices.reduce((sum, inv) => sum + inv.amount, 0);
 
   const handleMarkAsPaid = async (invoice: Invoice) => {
-    if (!invoice.amountPaid || !invoice.datePaid) {
-      alert('Please fill in both Amount Paid and Date Paid before marking as paid');
-      return;
-    }
-
     setIsLoading(true);
     try {
       const response = await fetch('/api/invoices', {
@@ -27,10 +21,7 @@ export default function OutstandingInvoicesClient({ data }: Props) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'markAsPaid',
-          invoice: {
-            ...invoice,
-            status: 'paid'
-          }
+          invoice
         })
       });
 
@@ -45,14 +36,14 @@ export default function OutstandingInvoicesClient({ data }: Props) {
 
   return (
     <InvoicePageLayout title="Outstanding Invoices">
-      <div className="space-y-4">
-        <div className="max-w-sm">
-          <TotalDisplay 
-            label="Total Outstanding" 
-            amount={outstandingTotal} 
-          />
+      <div className="p-6">
+        <div className="mb-6 bg-orange-50 p-4 rounded-lg">
+          <h2 className="text-lg font-semibold text-orange-700 mb-2">Total Outstanding</h2>
+          <p className="text-3xl font-bold text-orange-600">
+            ${totalOutstanding.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+          </p>
         </div>
-        <ClientInvoiceTable 
+        <InvoiceTable 
           invoices={data.invoices}
           onAction={handleMarkAsPaid}
           actionLabel={isLoading ? "Processing..." : "Mark as Paid"}
