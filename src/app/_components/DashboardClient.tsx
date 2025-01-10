@@ -62,7 +62,7 @@ export default function DashboardClient({ data }: Props) {
 
       {/* Title and Network Terms Section */}
       <div className="px-6 mb-4">
-        <h1 className="text-2xl font-bold text-gray-900">Convert 2 Freedom Accounts Receivable</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Network Terms & Current Exposure</h1>
       </div>
 
       {/* Network Terms Table */}

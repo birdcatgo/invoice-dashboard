@@ -11,7 +11,8 @@ interface Props {
   showNotes?: boolean;
   isEditable?: boolean;
   onNotesEdit?: (invoice: Invoice, notes: string) => void;
-  onAmountChange?: (invoice: Invoice, amount: number) => void;
+  onDatePaidEdit?: (invoice: Invoice, date: string) => void;
+  onAmountPaidEdit?: (invoice: Invoice, amount: number) => void;
 }
 
 export default function InvoiceTable({
@@ -22,7 +23,8 @@ export default function InvoiceTable({
   showNotes = false,
   isEditable = false,
   onNotesEdit,
-  onAmountChange
+  onDatePaidEdit,
+  onAmountPaidEdit
 }: Props) {
   return (
     <div className="overflow-x-auto">
@@ -36,6 +38,8 @@ export default function InvoiceTable({
             {showNotes && (
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Notes</th>
             )}
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Paid</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount Paid</th>
             {onAction && (
               <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
             )}
@@ -48,12 +52,12 @@ export default function InvoiceTable({
                 {invoice.network}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                {isEditable && onAmountChange ? (
+                {isEditable && onAmountPaidEdit ? (
                   <input
                     type="number"
                     className="border rounded px-2 py-1 w-32"
                     defaultValue={invoice.amount}
-                    onChange={(e) => onAmountChange(invoice, Number(e.target.value))}
+                    onChange={(e) => onAmountPaidEdit(invoice, Number(e.target.value))}
                   />
                 ) : (
                   formatCurrency(invoice.amount)
@@ -82,6 +86,31 @@ export default function InvoiceTable({
                   )}
                 </td>
               )}
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {isEditable && onDatePaidEdit ? (
+                  <input
+                    type="date"
+                    className="border rounded px-2 py-1"
+                    defaultValue={invoice.datePaid}
+                    onChange={(e) => onDatePaidEdit(invoice, e.target.value)}
+                  />
+                ) : (
+                  invoice.datePaid ? formatDate(invoice.datePaid) : '-'
+                )}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {isEditable && onAmountPaidEdit ? (
+                  <input
+                    type="number"
+                    step="0.01"
+                    className="border rounded px-2 py-1 w-32"
+                    defaultValue={invoice.amountPaid}
+                    onChange={(e) => onAmountPaidEdit(invoice, Number(e.target.value))}
+                  />
+                ) : (
+                  invoice.amountPaid ? formatCurrency(invoice.amountPaid) : '-'
+                )}
+              </td>
               {onAction && (
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <button

@@ -29,7 +29,10 @@ export async function getGoogleSheets() {
         client_email: process.env.GOOGLE_SHEETS_CLIENT_EMAIL,
         private_key: privateKey,
       },
-      scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
+      scopes: [
+        'https://www.googleapis.com/auth/spreadsheets.readonly',
+        'https://www.googleapis.com/auth/spreadsheets'
+      ],
     });
 
     return google.sheets({ version: 'v4', auth });
@@ -42,6 +45,29 @@ export async function getGoogleSheets() {
       hasKey: !!process.env.GOOGLE_SHEETS_PRIVATE_KEY,
       hasSheetId: !!process.env.CASH_FLOW_PROJECTIONS_EXTENDED_2024_SHEET_ID
     });
+    throw error;
+  }
+}
+
+export async function getSheetIds() {
+  try {
+    const sheets = await getGoogleSheets();
+    
+    const response = await sheets.spreadsheets.get({
+      spreadsheetId: process.env.CASH_FLOW_PROJECTIONS_EXTENDED_2024_SHEET_ID,
+    });
+
+    const sheetIds = response.data.sheets?.reduce((acc, sheet) => {
+      if (sheet.properties?.title && sheet.properties?.sheetId !== undefined) {
+        acc[sheet.properties.title] = sheet.properties.sheetId;
+      }
+      return acc;
+    }, {} as Record<string, number>);
+
+    console.log('Sheet IDs:', sheetIds);
+    return sheetIds;
+  } catch (error) {
+    console.error('Failed to get sheet IDs:', error);
     throw error;
   }
 } 

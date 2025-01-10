@@ -1,111 +1,174 @@
 import { NextResponse } from 'next/server';
-import { google, sheets_v4 } from 'googleapis';
+import { getGoogleSheets, getSheetIds } from '@/lib/sheets';
 import { Invoice } from '@/lib/types';
 
-interface InvoiceAction {
-  action: 'markAsPaid' | 'markAsInvoiced';
-  invoice: Invoice;
-  amountPaid?: number;
-  datePaid?: string;
+interface ApiResponse {
+  success?: boolean;
+  error?: string;
+  details?: string;
 }
 
 export async function POST(request: Request) {
   try {
-    const data: InvoiceAction = await request.json();
-    
-    if (!process.env.CASH_FLOW_PROJECTIONS_EXTENDED_2024_SHEET_ID) {
-      throw new Error('Missing spreadsheet ID');
-    }
+    const { action, invoice } = await request.json();
+    const sheets = await getGoogleSheets();
+    const sheetIds = await getSheetIds();
 
-    const auth = new google.auth.GoogleAuth({
-      credentials: {
-        client_email: process.env.GOOGLE_CLIENT_EMAIL,
-        private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-      },
-      scopes: ['https://www.googleapis.com/auth/spreadsheets'],
-    });
+    // Log the sheet IDs for reference
+    console.log('Available sheet IDs:', sheetIds);
 
-    const sheets = google.sheets({ version: 'v4', auth });
-    const sheetId = process.env.CASH_FLOW_PROJECTIONS_EXTENDED_2024_SHEET_ID;
+    if (action === 'markAsPaid') {
+      // Remove from Invoices sheet
+      const invoicesResponse = await sheets.spreadsheets.values.get({
+        spreadsheetId: process.env.CASH_FLOW_PROJECTIONS_EXTENDED_2024_SHEET_ID,
+        range: 'Invoices!A2:C',
+      });
 
-    switch (data.action) {
-      case 'markAsInvoiced':
-        await moveInvoice(sheets, sheetId!, 'To Be Invoiced', 'Invoices', data.invoice);
-        break;
-      case 'markAsPaid':
-        await moveInvoice(sheets, sheetId!, 'Invoices', 'Paid Invoices', data.invoice);
-        break;
-    }
+      const invoicesValues = invoicesResponse.data.values || [];
+      const invoiceIndex = invoicesValues.findIndex(row => 
+        row[0] === invoice.network && 
+        parseFloat(row[1].replace(/[$,]/g, '')) === invoice.amount &&
+        row[2] === invoice.dueDate
+      );
 
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error('Invoice action error:', error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'An error occurred' }, 
-      { status: 500 }
-    );
-  }
-}
-
-async function moveInvoice(
-  sheets: sheets_v4.Sheets, 
-  sheetId: string, 
-  fromSheet: string, 
-  toSheet: string, 
-  invoice: Invoice
-) {
-  // First, append to destination sheet
-  await sheets.spreadsheets.values.append({
-    spreadsheetId: sheetId,
-    range: `${toSheet}!A:C`,
-    valueInputOption: 'USER_ENTERED',
-    requestBody: {
-      values: [[invoice.network, invoice.amount, invoice.dueDate]]
-    }
-  });
-
-  // Then find and delete from source sheet
-  const sourceData = await sheets.spreadsheets.values.get({
-    spreadsheetId: sheetId,
-    range: `${fromSheet}!A:C`,
-  });
-
-  const rows = sourceData.data.values || [];
-  const rowIndex = rows.findIndex((row: string[]) => 
-    row[0] === invoice.network && 
-    parseFloat(row[1]) === invoice.amount && 
-    row[2] === invoice.dueDate
-  );
-
-  if (rowIndex !== -1) {
-    // First get the sheet ID mapping
-    const spreadsheet = await sheets.spreadsheets.get({
-      spreadsheetId: sheetId,
-    });
-
-    const sourceSheet = spreadsheet.data.sheets?.find(
-      s => s.properties?.title === fromSheet
-    );
-
-    if (!sourceSheet?.properties?.sheetId) {
-      throw new Error(`Sheet ${fromSheet} not found`);
-    }
-
-    // Then use it in the batchUpdate
-    await sheets.spreadsheets.batchUpdate({
-      spreadsheetId: sheetId,
-      requestBody: {
-        requests: [{
-          deleteDimension: {
-            range: {
-              sheetId: sourceSheet.properties.sheetId,
-              dimension: 'ROWS',
-              startIndex: rowIndex + 1,
-              endIndex: rowIndex + 2
-            }
+      if (invoiceIndex !== -1) {
+        // Delete the row in Invoices sheet
+        await sheets.spreadsheets.batchUpdate({
+          spreadsheetId: process.env.CASH_FLOW_PROJECTIONS_EXTENDED_2024_SHEET_ID,
+          requestBody: {
+            requests: [{
+              deleteDimension: {
+                range: {
+                  sheetId: 419512147, // Invoices sheet ID
+                  dimension: 'ROWS',
+                  startIndex: invoiceIndex + 1,
+                  endIndex: invoiceIndex + 2
+                }
+              }
+            }]
           }
-        }]
+        });
+
+        // Add to Paid Invoices sheet with payment details
+        await sheets.spreadsheets.values.append({
+          spreadsheetId: process.env.CASH_FLOW_PROJECTIONS_EXTENDED_2024_SHEET_ID,
+          range: 'Paid Invoices!A:E',
+          valueInputOption: 'USER_ENTERED',
+          requestBody: {
+            values: [[
+              invoice.network,
+              invoice.amount,
+              invoice.dueDate,
+              invoice.datePaid || new Date().toISOString().split('T')[0],
+              invoice.amountPaid || invoice.amount
+            ]]
+          }
+        });
+
+        return NextResponse.json({ success: true } as ApiResponse);
       }
-    });
+
+      return NextResponse.json({ 
+        error: 'Invoice not found',
+        details: 'Could not find the invoice in the sheet'
+      } as ApiResponse, { status: 404 });
+    }
+
+    if (action === 'undoPaid') {
+      // Add back to Invoices sheet
+      await sheets.spreadsheets.values.append({
+        spreadsheetId: process.env.CASH_FLOW_PROJECTIONS_EXTENDED_2024_SHEET_ID,
+        range: 'Invoices!A:C',
+        valueInputOption: 'USER_ENTERED',
+        requestBody: {
+          values: [[
+            invoice.network,
+            invoice.amount,
+            invoice.dueDate
+          ]]
+        }
+      });
+
+      // Remove from Paid Invoices sheet
+      const paidResponse = await sheets.spreadsheets.values.get({
+        spreadsheetId: process.env.CASH_FLOW_PROJECTIONS_EXTENDED_2024_SHEET_ID,
+        range: 'Paid Invoices!A2:E',
+      });
+
+      const paidValues = paidResponse.data.values || [];
+      const paidIndex = paidValues.findIndex(row => 
+        row[0] === invoice.network && 
+        parseFloat(row[1].replace(/[$,]/g, '')) === invoice.amount &&
+        row[2] === invoice.dueDate
+      );
+
+      if (paidIndex !== -1) {
+        // Delete the row in Paid Invoices sheet
+        await sheets.spreadsheets.batchUpdate({
+          spreadsheetId: process.env.CASH_FLOW_PROJECTIONS_EXTENDED_2024_SHEET_ID,
+          requestBody: {
+            requests: [{
+              deleteDimension: {
+                range: {
+                  sheetId: 1944485995, // Paid Invoices sheet ID
+                  dimension: 'ROWS',
+                  startIndex: paidIndex + 1,
+                  endIndex: paidIndex + 2
+                }
+              }
+            }]
+          }
+        });
+      }
+
+      return NextResponse.json({ success: true } as ApiResponse);
+    }
+
+    if (action === 'updatePaymentDetails') {
+      const paidResponse = await sheets.spreadsheets.values.get({
+        spreadsheetId: process.env.CASH_FLOW_PROJECTIONS_EXTENDED_2024_SHEET_ID,
+        range: 'Paid Invoices!A2:E',
+      });
+
+      const paidValues = paidResponse.data.values || [];
+      const paidIndex = paidValues.findIndex(row => 
+        row[0] === invoice.network && 
+        parseFloat(row[1].replace(/[$,]/g, '')) === invoice.amount &&
+        row[2] === invoice.dueDate
+      );
+
+      if (paidIndex !== -1) {
+        await sheets.spreadsheets.values.update({
+          spreadsheetId: process.env.CASH_FLOW_PROJECTIONS_EXTENDED_2024_SHEET_ID,
+          range: `Paid Invoices!D${paidIndex + 2}:E${paidIndex + 2}`,
+          valueInputOption: 'USER_ENTERED',
+          requestBody: {
+            values: [[
+              invoice.datePaid,
+              invoice.amountPaid
+            ]]
+          }
+        });
+
+        return NextResponse.json({ success: true } as ApiResponse);
+      }
+
+      return NextResponse.json({ 
+        error: 'Invoice not found',
+        details: 'Could not find the invoice in the paid sheet'
+      } as ApiResponse, { status: 404 });
+    }
+
+    return NextResponse.json({ 
+      error: 'Invalid action',
+      details: 'The requested action is not supported'
+    } as ApiResponse, { status: 400 });
+
+  } catch (error) {
+    console.error('Invoice API Error:', error);
+    return NextResponse.json({
+      error: 'Failed to process invoice action',
+      details: error instanceof Error ? error.message : 'Unknown error occurred'
+    } as ApiResponse, { status: 500 });
   }
 } 

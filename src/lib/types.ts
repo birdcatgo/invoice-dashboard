@@ -34,8 +34,8 @@ export interface NetworkConfig {
     amount: number;
     dueDate: string;
     notes?: string;
+    status?: 'pending' | 'paid';
     datePaid?: string;
-    status?: 'pending' | 'paid' | 'overdue';
     amountPaid?: number;
   }
   
