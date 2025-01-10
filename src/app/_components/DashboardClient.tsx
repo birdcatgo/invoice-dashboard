@@ -61,12 +61,13 @@ export default function DashboardClient({ data }: Props) {
       </div>
 
       {/* Network Terms Section */}
-      <div className="bg-white shadow">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h1 className="text-xl font-semibold text-gray-900">Network Terms & Current Exposure</h1>
-        </div>
-
-        <div className="overflow-x-auto">
+      <div className="px-6">
+        <div className="bg-white shadow">
+          <div className="border-b border-gray-200 bg-gray-50">
+            <h1 className="px-6 py-4 text-2xl font-semibold text-gray-900">
+              Network Terms & Current Exposure
+            </h1>
+          </div>
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>

@@ -58,7 +58,7 @@ export async function getSheetIds() {
     });
 
     const sheetIds = response.data.sheets?.reduce((acc, sheet) => {
-      if (sheet.properties?.title && sheet.properties?.sheetId !== undefined) {
+      if (sheet.properties?.title && typeof sheet.properties?.sheetId === 'number') {
         acc[sheet.properties.title] = sheet.properties.sheetId;
       }
       return acc;
