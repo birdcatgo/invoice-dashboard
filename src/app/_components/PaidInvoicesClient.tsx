@@ -121,7 +121,7 @@ export default function PaidInvoicesClient({ data }: Props) {
           onDatePaidEdit={(invoice, date) => handlePaymentDetailsUpdate(invoice, 'datePaid', date)}
           onAmountPaidEdit={(invoice, amount) => handlePaymentDetailsUpdate(invoice, 'amountPaid', amount)}
           onAction={handleUndoPaid}
-          actionLabel="Move to Outstanding"
+          actionLabel={isLoading ? "Processing..." : "Move to Outstanding"}
           actionClass="text-orange-600 hover:text-orange-900"
         />
       </div>

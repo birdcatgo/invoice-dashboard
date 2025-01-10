@@ -8,9 +8,14 @@ interface ApiResponse {
   details?: string;
 }
 
+interface RequestBody {
+  action: string;
+  invoice: Invoice;
+}
+
 export async function POST(request: Request) {
   try {
-    const { action, invoice } = await request.json();
+    const { action, invoice }: RequestBody = await request.json();
     const sheets = await getGoogleSheets();
     const sheetIds = await getSheetIds();
 
