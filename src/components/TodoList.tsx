@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Invoice, NetworkTerms } from '@/lib/types';
 import { formatCurrency, formatDate } from '@/lib/utils';
 
@@ -17,11 +17,17 @@ interface FollowUp {
 }
 
 export default function TodoList({ networkTerms, overdueInvoices }: Props) {
-  const [followUps, setFollowUps] = useState<Record<string, FollowUp>>(() => {
-    // Initialize from localStorage if available
+  const [followUps, setFollowUps] = useState<Record<string, FollowUp>>({});
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  // Load data from localStorage only on client side
+  useEffect(() => {
     const saved = localStorage.getItem('invoiceFollowUps');
-    return saved ? JSON.parse(saved) : {};
-  });
+    if (saved) {
+      setFollowUps(JSON.parse(saved));
+    }
+    setIsInitialized(true);
+  }, []);
 
   // Get invoices that need to be created
   const newInvoicesNeeded = networkTerms.filter(term => {
@@ -47,6 +53,11 @@ export default function TodoList({ networkTerms, overdueInvoices }: Props) {
     setFollowUps(newFollowUps);
     localStorage.setItem('invoiceFollowUps', JSON.stringify(newFollowUps));
   };
+
+  // Don't render until we've loaded data from localStorage
+  if (!isInitialized) {
+    return null;
+  }
 
   return (
     <div className="space-y-8">
