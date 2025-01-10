@@ -2,6 +2,7 @@ import { google } from 'googleapis';
 
 export async function getGoogleSheets() {
   try {
+    console.log('Initializing Google Sheets client...');
     if (!process.env.GOOGLE_SHEETS_CLIENT_EMAIL) {
       throw new Error('Missing GOOGLE_SHEETS_CLIENT_EMAIL');
     }
@@ -35,7 +36,9 @@ export async function getGoogleSheets() {
       ],
     });
 
-    return google.sheets({ version: 'v4', auth });
+    const sheets = google.sheets({ version: 'v4', auth });
+    console.log('Google Sheets client initialized successfully');
+    return sheets;
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     console.error('Google Sheets initialization error:', {
