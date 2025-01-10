@@ -1,7 +1,6 @@
 import { getGoogleSheets } from '@/lib/sheets';
 import TodoList from '@/components/TodoList';
 import InvoicePageLayout from '@/components/InvoicePageLayout';
-import { NetworkTerms, Invoice } from '@/lib/types';
 
 // Add revalidation to ensure fresh data
 export const revalidate = 0;
