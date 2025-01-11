@@ -17,13 +17,9 @@ export async function POST(request: Request) {
   try {
     const { action, invoice }: RequestBody = await request.json();
     const sheets = await getGoogleSheets();
-    const sheetIds = await getSheetIds();
-
-    // Log the sheet IDs for reference
-    console.log('Available sheet IDs:', sheetIds);
 
     if (action === 'markAsPaid') {
-      // Remove from Invoices sheet
+      // First, verify the invoice exists in Invoices sheet
       const invoicesResponse = await sheets.spreadsheets.values.get({
         spreadsheetId: process.env.CASH_FLOW_PROJECTIONS_EXTENDED_2024_SHEET_ID,
         range: 'Invoices!A2:C',
@@ -37,7 +33,7 @@ export async function POST(request: Request) {
       );
 
       if (invoiceIndex !== -1) {
-        // Delete the row in Invoices sheet
+        // Delete from Invoices sheet
         await sheets.spreadsheets.batchUpdate({
           spreadsheetId: process.env.CASH_FLOW_PROJECTIONS_EXTENDED_2024_SHEET_ID,
           requestBody: {
@@ -68,6 +64,12 @@ export async function POST(request: Request) {
               invoice.amountPaid || invoice.amount
             ]]
           }
+        });
+
+        // Force refresh the sheets to update formulas
+        await sheets.spreadsheets.values.get({
+          spreadsheetId: process.env.CASH_FLOW_PROJECTIONS_EXTENDED_2024_SHEET_ID,
+          range: 'Dashboard!A1',
         });
 
         return NextResponse.json({ success: true } as ApiResponse);

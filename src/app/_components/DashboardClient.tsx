@@ -4,6 +4,7 @@ import { DashboardData } from '@/lib/types';
 import { formatCurrency } from '@/lib/utils';
 import Link from 'next/link';
 import Header from '@/components/Header';
+import { useRouter } from 'next/navigation';
 
 interface Props {
   data: DashboardData;
@@ -15,6 +16,51 @@ export default function DashboardClient({ data }: Props) {
   const totalPaid = data.paidInvoices.reduce((sum, inv) => sum + inv.amount, 0);
 
   const sortedNetworkTerms = [...data.networkTerms].sort((a, b) => b.runningTotal - a.runningTotal);
+
+  const router = useRouter();
+
+  const handleMarkAsPaid = async (invoice: Invoice) => {
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/invoices', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'markAsPaid',
+          invoice: {
+            ...invoice,
+            datePaid: new Date().toISOString().split('T')[0],
+            amountPaid: invoice.amount
+          }
+        })
+      });
+
+      const result = await response.json() as ApiResponse;
+
+      if (!response.ok) {
+        throw new Error(result.details || result.error || 'Failed to mark as paid');
+      }
+
+      if (result.success) {
+        // Update local state
+        setLocalInvoices(current => 
+          current.filter(inv => 
+            !(inv.network === invoice.network && 
+              inv.amount === invoice.amount && 
+              inv.dueDate === invoice.dueDate)
+          )
+        );
+        
+        // Force a refresh to update all data
+        router.refresh();
+      }
+    } catch (error) {
+      console.error('Error marking as paid:', error);
+      alert(error instanceof Error ? error.message : 'Failed to mark as paid');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="max-w-7xl mx-auto">
