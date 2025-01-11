@@ -121,6 +121,7 @@ export default function OutstandingInvoicesClient({ data }: Props) {
   return (
     <InvoicePageLayout title="Outstanding Invoices">
       <div className="p-6">
+        {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           {/* Total Outstanding Card */}
           <div className="bg-orange-50 p-4 rounded-lg">
@@ -161,22 +162,9 @@ export default function OutstandingInvoicesClient({ data }: Props) {
           </div>
         )}
 
-        {/* Overdue Invoices Section */}
-        {overdueInvoices.length > 0 && (
-          <div className="mb-8">
-            <h2 className="text-xl font-semibold mb-4 text-red-700">Overdue Invoices</h2>
-            <InvoiceTable 
-              invoices={overdueInvoices}
-              onAction={handleMarkAsPaid}
-              actionLabel={isLoading ? "Processing..." : "Mark as Paid"}
-              actionClass="text-green-600 hover:text-green-900"
-            />
-          </div>
-        )}
-
-        {/* All Outstanding Invoices */}
+        {/* All Outstanding Invoices Table */}
         <div>
-          <h2 className="text-xl font-semibold mb-4">All Outstanding Invoices</h2>
+          <h2 className="text-xl font-semibold mb-4">Outstanding Invoices</h2>
           <InvoiceTable 
             invoices={localInvoices}
             onAction={handleMarkAsPaid}
