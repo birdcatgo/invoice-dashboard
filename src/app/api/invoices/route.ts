@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getGoogleSheets, getSheetIds } from '@/lib/sheets';
+import { getGoogleSheets } from '@/lib/sheets';
 import { Invoice } from '@/lib/types';
 
 interface ApiResponse {
