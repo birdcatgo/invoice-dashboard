@@ -19,6 +19,7 @@ interface SortConfig {
 }
 
 export default function OutstandingInvoicesClient({ data }: Props) {
+  console.log('OutstandingInvoicesClient data:', data);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [sortConfig, setSortConfig] = useState<SortConfig>({

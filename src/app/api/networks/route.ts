@@ -9,9 +9,7 @@ interface GoogleSheetRow {
 
 export async function GET() {
   try {
-    // Log environment check
-    console.log('API Route Environment:', {
-      nodeEnv: process.env.NODE_ENV,
+    console.log('API Environment:', {
       hasGoogleCreds: !!process.env.GOOGLE_SHEETS_CLIENT_EMAIL && !!process.env.GOOGLE_SHEETS_PRIVATE_KEY,
       hasSheetId: !!process.env.CASH_FLOW_PROJECTIONS_EXTENDED_2024_SHEET_ID
     });
@@ -51,11 +49,11 @@ export async function GET() {
         }),
       ]);
 
-      console.log('Raw Sheet Data:', {
-        networkTermsLength: networkTerms.data.values?.length || 0,
-        toBeInvoicedLength: toBeInvoiced.data.values?.length || 0,
-        invoicesLength: invoices.data.values?.length || 0,
-        paidInvoicesLength: paidInvoices.data.values?.length || 0
+      console.log('API Response Stats:', {
+        networkTermsCount: networkTerms.data.values?.length || 0,
+        toBeInvoicedCount: toBeInvoiced.data.values?.length || 0,
+        invoicesCount: invoices.data.values?.length || 0,
+        paidInvoicesCount: paidInvoices.data.values?.length || 0
       });
 
       // Helper function to parse numbers from strings

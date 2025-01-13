@@ -18,6 +18,7 @@ interface ApiResponse {
 }
 
 export default function PaidInvoicesClient({ data }: Props) {
+  console.log('PaidInvoicesClient data:', data);
   const [isLoading, setIsLoading] = useState(false);
   const [localInvoices, setLocalInvoices] = useState(data.paidInvoices);
   const router = useRouter();

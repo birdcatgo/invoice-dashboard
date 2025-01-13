@@ -10,6 +10,7 @@ interface Props {
 }
 
 export default function ToBeInvoicedClient({ data }: Props) {
+  console.log('ToBeInvoicedClient data:', data);
   const [isLoading, setIsLoading] = useState(false);
   const [editingNetwork, setEditingNetwork] = useState<string | null>(null);
   const [dashAmounts, setDashAmounts] = useState<Record<string, number>>({});
