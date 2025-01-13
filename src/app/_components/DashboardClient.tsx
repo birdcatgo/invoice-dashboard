@@ -10,6 +10,7 @@ interface Props {
 }
 
 export default function DashboardClient({ data }: Props) {
+  const totalToBeInvoiced = data.toBeInvoiced.reduce((sum, inv) => sum + inv.amount, 0);
   const totalOutstanding = data.invoices.reduce((sum, inv) => sum + inv.amount, 0);
   const totalPaid = data.paidInvoices.reduce((sum, inv) => sum + inv.amount, 0);
 
@@ -27,11 +28,11 @@ export default function DashboardClient({ data }: Props) {
           <Link href="/to-be-invoiced" 
             className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow p-6">
             <h2 className="text-lg font-semibold text-gray-700 mb-2">To Be Invoiced</h2>
-            <p className="text-3xl font-bold text-gray-900">
-              {data.toBeInvoiced.length}
+            <p className="text-3xl font-bold text-indigo-600">
+              {formatCurrency(totalToBeInvoiced)}
             </p>
-            <p className="text-gray-500 mt-2">
-              Items ready to be invoiced
+            <p className="text-sm text-gray-500 mt-2">
+              {data.toBeInvoiced.length} items ready
             </p>
           </Link>
 
