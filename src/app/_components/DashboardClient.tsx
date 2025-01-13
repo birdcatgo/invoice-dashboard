@@ -28,11 +28,11 @@ export default function DashboardClient({ data }: Props) {
           <Link href="/to-be-invoiced" 
             className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow p-6">
             <h2 className="text-lg font-semibold text-gray-700 mb-2">To Be Invoiced</h2>
-            <p className="text-3xl font-bold text-indigo-600">
-              {formatCurrency(totalToBeInvoiced)}
+            <p className="text-3xl font-bold text-gray-900">
+              {data.toBeInvoiced.length}
             </p>
-            <p className="text-sm text-gray-500 mt-2">
-              {data.toBeInvoiced.length} invoices pending
+            <p className="text-gray-500 mt-2">
+              Items ready to be invoiced
             </p>
           </Link>
 
