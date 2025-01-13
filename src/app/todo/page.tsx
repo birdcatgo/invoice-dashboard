@@ -67,7 +67,6 @@ export default async function TodoPage() {
       <InvoicePageLayout title="To-Do List">
         <div className="p-6">
           <TodoList 
-            networkTerms={transformedNetworkTerms}
             overdueInvoices={overdueInvoices}
           />
         </div>

@@ -1,11 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Invoice, NetworkTerms } from '@/lib/types';
+import { Invoice } from '@/lib/types';
 import { formatCurrency, formatDate } from '@/lib/utils';
 
 interface Props {
-  networkTerms: NetworkTerms[];
   overdueInvoices: Invoice[];
 }
 
@@ -16,7 +15,7 @@ interface FollowUp {
   followUpDate?: string;
 }
 
-export default function TodoList({ networkTerms, overdueInvoices }: Props) {
+export default function TodoList({ overdueInvoices }: Props) {
   const [followUps, setFollowUps] = useState<Record<string, FollowUp>>({});
   const [isInitialized, setIsInitialized] = useState(false);
 
