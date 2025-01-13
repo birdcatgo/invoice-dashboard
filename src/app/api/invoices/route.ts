@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getGoogleSheets } from '@/lib/sheets';
 import { Invoice } from '@/lib/types';
-import { formatDate } from '@/lib/utils';
 
 interface ApiResponse {
   success?: boolean;
@@ -13,11 +12,6 @@ interface RequestBody {
   action: string;
   invoice: Invoice;
 }
-
-const SHEET_IDS = {
-  OUTSTANDING: 419512147,  // Sheet ID for "Invoices"
-  PAID: 1944485995        // Sheet ID for "Paid Invoices"
-};
 
 export async function POST(request: Request) {
   try {

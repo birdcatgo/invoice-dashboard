@@ -7,11 +7,6 @@ interface GoogleSheetRow {
   [index: number]: string;
 }
 
-interface NetworkData {
-  action: string;
-  network: string;
-}
-
 export async function GET() {
   try {
     // Log environment check

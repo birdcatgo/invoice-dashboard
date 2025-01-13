@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { DashboardData, Invoice, NetworkTerms } from '@/lib/types';
+import { DashboardData } from '@/lib/types';
 import InvoicePageLayout from '@/components/InvoicePageLayout';
 import { formatCurrency, formatDate } from '@/lib/utils';
 
