@@ -9,16 +9,6 @@ interface Props {
   data: DashboardData;
 }
 
-interface NetworkPeriod {
-  network: string;
-  periodStart: string;
-  periodEnd: string;
-  amount: number;
-  dashAmount: number;
-  isReadyToInvoice: boolean;
-  payPeriod: number;
-}
-
 export default function ToBeInvoicedClient({ data }: Props) {
   const [isLoading, setIsLoading] = useState(false);
   const [editingNetwork, setEditingNetwork] = useState<string | null>(null);
