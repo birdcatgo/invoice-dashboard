@@ -10,7 +10,6 @@ interface Props {
 }
 
 export default function DashboardClient({ data }: Props) {
-  const totalToBeInvoiced = data.toBeInvoiced.reduce((sum, inv) => sum + inv.amount, 0);
   const totalOutstanding = data.invoices.reduce((sum, inv) => sum + inv.amount, 0);
   const totalPaid = data.paidInvoices.reduce((sum, inv) => sum + inv.amount, 0);
 
