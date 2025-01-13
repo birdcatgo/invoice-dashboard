@@ -123,6 +123,8 @@ export default function PaidInvoicesClient({ data }: Props) {
           onAction={handleUndoPaid}
           actionLabel={isLoading ? "Processing..." : "Move to Outstanding"}
           actionClass="text-orange-600 hover:text-orange-900"
+          showPaymentDetails={true}
+          showDifference={true}
         />
       </div>
     </InvoicePageLayout>

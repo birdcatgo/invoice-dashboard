@@ -29,13 +29,6 @@ export default function TodoList({ networkTerms, overdueInvoices }: Props) {
     setIsInitialized(true);
   }, []);
 
-  // Get invoices that need to be created
-  const newInvoicesNeeded = networkTerms.filter(term => {
-    const today = new Date();
-    const periodEnd = new Date(term.periodEnd);
-    return periodEnd < today;
-  });
-
   const handleFollowUpChange = (invoice: Invoice, field: 'notes' | 'followedUp', value: string | boolean) => {
     const invoiceKey = `${invoice.network}-${invoice.amount}-${invoice.dueDate}`;
     const updatedFollowUp = {
@@ -60,42 +53,7 @@ export default function TodoList({ networkTerms, overdueInvoices }: Props) {
   }
 
   return (
-    <div className="space-y-8">
-      {/* New Invoices Section */}
-      <div>
-        <h2 className="text-xl font-semibold mb-4 text-gray-900">Invoices to Create</h2>
-        {newInvoicesNeeded.length === 0 ? (
-          <p className="text-gray-500 italic">No new invoices need to be created</p>
-        ) : (
-          <div className="bg-white shadow rounded-lg overflow-hidden">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Network</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Period End</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Running Total</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {newInvoicesNeeded.map((term, index) => (
-                  <tr key={index} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {term.network}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {formatDate(term.periodEnd)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {formatCurrency(term.runningTotal)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-
+    <div>
       {/* Overdue Follow-ups Section */}
       <div>
         <h2 className="text-xl font-semibold mb-4 text-red-700">Overdue Follow-ups</h2>

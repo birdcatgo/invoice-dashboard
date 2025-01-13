@@ -37,6 +37,10 @@ export interface NetworkConfig {
     status?: 'pending' | 'paid';
     datePaid?: string;
     amountPaid?: number;
+    periodStart?: string;
+    periodEnd?: string;
+    dashAmount?: number;
+    isReadyToInvoice?: boolean;
   }
   
   export interface InvoicePeriod {
@@ -77,6 +81,7 @@ export interface NetworkConfig {
     periodEnd: string;
     invoiceDue: string;
     runningTotal: number;
+    dashAmount?: number;
   }
   
   export interface DashboardData {

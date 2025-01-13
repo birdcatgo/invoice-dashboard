@@ -14,10 +14,13 @@ interface Props {
 export default function PaymentModal({ invoice, isOpen, isLoading, onClose, onConfirm }: Props) {
   if (!isOpen) return null;
 
+  const today = new Date().toISOString().split('T')[0];
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const datePaid = formData.get('datePaid') as string;
+    console.log('Date from modal:', datePaid);
     const amountPaid = parseFloat(formData.get('amountPaid') as string);
     onConfirm(datePaid, amountPaid);
   };
@@ -45,7 +48,7 @@ export default function PaymentModal({ invoice, isOpen, isLoading, onClose, onCo
               <input
                 type="date"
                 name="datePaid"
-                defaultValue={new Date().toISOString().split('T')[0]}
+                defaultValue={today}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                 required
               />
