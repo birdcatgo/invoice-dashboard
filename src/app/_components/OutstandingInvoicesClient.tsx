@@ -76,12 +76,20 @@ export default function OutstandingInvoicesClient({ data }: Props) {
       });
 
       if (!response.ok) throw new Error('Failed to mark as paid');
-      window.location.reload();
+      
+      // Only refresh if it's a full payment or configured to do so
+      if (amountPaid >= selectedInvoice.amount) {
+        window.location.reload();
+      } else {
+        // Update the local state to reflect the partial payment
+        const remainingAmount = selectedInvoice.amount - amountPaid;
+        // Handle UI update for partial payment...
+        setSelectedInvoice(null);
+      }
     } catch (error) {
       console.error('Error marking as paid:', error);
     } finally {
       setIsLoading(false);
-      setSelectedInvoice(null);
     }
   };
 

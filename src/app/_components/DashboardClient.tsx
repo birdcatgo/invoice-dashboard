@@ -1,8 +1,8 @@
 'use client';
 
-import { DashboardData } from '@/lib/types';
-import { formatCurrency } from '@/lib/utils';
 import Link from 'next/link';
+import { DashboardData } from '@/lib/types';
+import { formatCurrency, formatDate } from '@/lib/utils';
 import Header from '@/components/Header';
 
 interface Props {
@@ -63,36 +63,36 @@ export default function DashboardClient({ data }: Props) {
       {/* Network Terms Section */}
       <div className="px-6">
         <div className="bg-white shadow rounded-lg">
-          <div className="bg-gradient-to-r from-gray-50 to-white border-b border-gray-200">
-            <div className="px-6 py-5 flex justify-between items-center">
-              <h1 className="text-2xl font-bold text-gray-900">
-                Network Terms & Current Exposure
-              </h1>
-              <div className="text-sm text-gray-500">
-                {sortedNetworkTerms.length} Networks
-              </div>
-            </div>
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h2 className="text-lg font-medium text-gray-900">Network Terms & Current Exposure</h2>
           </div>
-
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Network</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Offer</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Pay Period</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Net Terms</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Running Total</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Period Start</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Period End</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Running Total</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {sortedNetworkTerms.map((term, index) => (
+              {sortedNetworkTerms.map((network, index) => (
                 <tr key={index} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{term.network}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{term.offer}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{term.payPeriod} days</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{term.netTerms} days</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
-                    {formatCurrency(term.runningTotal)}
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    {network.network}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {network.payPeriod} days
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {formatDate(network.periodStart)}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {formatDate(network.periodEnd)}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {formatCurrency(network.runningTotal)}
                   </td>
                 </tr>
               ))}

@@ -7,6 +7,19 @@ interface GoogleSheetRow {
   [index: number]: string;
 }
 
+const parseDate = (dateStr: string): string => {
+  if (!dateStr || dateStr === '#VALUE!') return '';
+  try {
+    // Handle MM/DD/YYYY format
+    const [month, day, year] = dateStr.split('/');
+    // Return in ISO format for consistency
+    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+  } catch (e) {
+    console.error('Error parsing date:', dateStr, e);
+    return '';
+  }
+};
+
 export async function GET() {
   try {
     console.log('API Environment:', {
@@ -66,16 +79,21 @@ export async function GET() {
       };
 
       const transformNetworkTerms = (rows: GoogleSheetRow[]): NetworkTerms[] => {
-        return (rows || []).map(row => ({
-          network: row[0] || '',
-          offer: row[1] || '',
-          payPeriod: parseAmount(row[2]),
-          netTerms: parseAmount(row[3]),
-          periodStart: row[4] || '',
-          periodEnd: row[5] || '',
-          invoiceDue: row[6] || '',
-          runningTotal: parseAmount(row[7])
-        }));
+        console.log('Raw network terms rows:', rows);
+        return (rows || []).map(row => {
+          const transformed = {
+            network: row[0] || '',
+            offer: row[1] || '',
+            payPeriod: parseAmount(row[2]),
+            netTerms: parseAmount(row[3]),
+            periodStart: parseDate(row[4]),
+            periodEnd: parseDate(row[5]),
+            invoiceDue: parseDate(row[6]),
+            runningTotal: parseAmount(row[7])
+          };
+          console.log('Transformed network term:', transformed);
+          return transformed;
+        });
       };
 
       const transformInvoices = (rows: GoogleSheetRow[]): Invoice[] => {

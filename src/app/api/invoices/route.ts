@@ -38,22 +38,8 @@ export async function POST(request: Request) {
       );
 
       if (invoiceIndex !== -1) {
-        // Delete from Invoices sheet
-        await sheets.spreadsheets.batchUpdate({
-          spreadsheetId: process.env.CASH_FLOW_PROJECTIONS_EXTENDED_2024_SHEET_ID,
-          requestBody: {
-            requests: [{
-              deleteDimension: {
-                range: {
-                  sheetId: 419512147, // Invoices sheet ID
-                  dimension: 'ROWS',
-                  startIndex: invoiceIndex + 1,
-                  endIndex: invoiceIndex + 2
-                }
-              }
-            }]
-          }
-        });
+        // Check if this is a partial payment
+        const isPartialPayment = invoice.amountPaid < invoice.amount;
 
         // Add to Paid Invoices sheet with payment details
         await sheets.spreadsheets.values.append({
@@ -66,10 +52,63 @@ export async function POST(request: Request) {
               invoice.amount,
               invoice.dueDate,
               invoice.datePaid,
-              Number(invoice.amountPaid)
+              invoice.amountPaid
             ]]
           }
         });
+
+        // Update Network Terms running total
+        const networkTermsResponse = await sheets.spreadsheets.values.get({
+          spreadsheetId: process.env.CASH_FLOW_PROJECTIONS_EXTENDED_2024_SHEET_ID,
+          range: "'Network Terms'!A2:H",
+        });
+
+        const networkTermsValues = networkTermsResponse.data.values || [];
+        const networkIndex = networkTermsValues.findIndex(row => row[0] === invoice.network);
+
+        if (networkIndex !== -1) {
+          const currentTotal = parseFloat(networkTermsValues[networkIndex][7].replace(/[$,]/g, '') || '0');
+          const newTotal = Math.max(0, currentTotal - invoice.amount); // Subtract full invoice amount
+
+          await sheets.spreadsheets.values.update({
+            spreadsheetId: process.env.CASH_FLOW_PROJECTIONS_EXTENDED_2024_SHEET_ID,
+            range: `'Network Terms'!H${networkIndex + 2}`, // +2 because sheet starts at A2
+            valueInputOption: 'USER_ENTERED',
+            requestBody: {
+              values: [[newTotal]]
+            }
+          });
+        }
+
+        if (isPartialPayment) {
+          // Update the outstanding invoice with remaining amount
+          const remainingAmount = invoice.amount - invoice.amountPaid;
+          await sheets.spreadsheets.values.update({
+            spreadsheetId: process.env.CASH_FLOW_PROJECTIONS_EXTENDED_2024_SHEET_ID,
+            range: `'Invoices'!B${invoiceIndex + 2}`,
+            valueInputOption: 'USER_ENTERED',
+            requestBody: {
+              values: [[remainingAmount]]
+            }
+          });
+        } else {
+          // Full payment - delete from Invoices sheet
+          await sheets.spreadsheets.batchUpdate({
+            spreadsheetId: process.env.CASH_FLOW_PROJECTIONS_EXTENDED_2024_SHEET_ID,
+            requestBody: {
+              requests: [{
+                deleteDimension: {
+                  range: {
+                    sheetId: 419512147,
+                    dimension: 'ROWS',
+                    startIndex: invoiceIndex + 1,
+                    endIndex: invoiceIndex + 2
+                  }
+                }
+              }]
+            }
+          });
+        }
 
         console.log('Added to sheet with values:', {
           network: invoice.network,
