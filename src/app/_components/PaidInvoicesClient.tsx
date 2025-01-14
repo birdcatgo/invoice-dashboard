@@ -118,7 +118,6 @@ export default function PaidInvoicesClient({ data }: Props) {
         </div>
         <InvoiceTable 
           invoices={localInvoices}
-          isEditable={true}
           onDatePaidEdit={(invoice, date) => handlePaymentDetailsUpdate(invoice, 'datePaid', date)}
           onAmountPaidEdit={(invoice, amount) => handlePaymentDetailsUpdate(invoice, 'amountPaid', amount)}
           onAction={handleUndoPaid}
