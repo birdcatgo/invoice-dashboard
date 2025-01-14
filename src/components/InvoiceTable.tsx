@@ -8,7 +8,6 @@ interface Props {
   onAction?: (invoice: Invoice) => void;
   actionLabel?: string;
   actionClass?: string;
-  isEditable?: boolean;
   showPaymentDetails?: boolean;
   showDifference?: boolean;
 }
@@ -18,7 +17,6 @@ export default function InvoiceTable({
   onAction, 
   actionLabel = "Mark as Paid",
   actionClass = "text-green-600 hover:text-green-900",
-  isEditable = false,
   showPaymentDetails = false,
   showDifference = false
 }: Props) {

@@ -81,9 +81,13 @@ export default function OutstandingInvoicesClient({ data }: Props) {
       if (amountPaid >= selectedInvoice.amount) {
         window.location.reload();
       } else {
-        // Update the local state to reflect the partial payment
-        const remainingAmount = selectedInvoice.amount - amountPaid;
-        // Handle UI update for partial payment...
+        setLocalInvoices(current => 
+          current.map(inv => 
+            inv === selectedInvoice 
+              ? { ...inv, amount: inv.amount - amountPaid }
+              : inv
+          )
+        );
         setSelectedInvoice(null);
       }
     } catch (error) {
