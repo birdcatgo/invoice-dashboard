@@ -88,10 +88,21 @@ export default function InvoiceTable({
               {showPaymentDetails && (
                 <>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {invoice.datePaid ? formatDate(invoice.datePaid) : '-'}
+                    <input
+                      type="date"
+                      value={invoice.datePaid || ''}
+                      onChange={(e) => handleDateEdit(invoice, e.target.value)}
+                      className="border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    />
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {invoice.amountPaid ? formatCurrency(invoice.amountPaid) : '-'}
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={invoice.amountPaid || ''}
+                      onChange={(e) => handleAmountEdit(invoice, e.target.value)}
+                      className="border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    />
                   </td>
                 </>
               )}
