@@ -22,6 +22,7 @@ export default function OutstandingInvoicesClient({ data }: Props) {
   console.log('OutstandingInvoicesClient data:', data);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
+  const [localInvoices, setLocalInvoices] = useState(data.invoices);
   const [sortConfig, setSortConfig] = useState<SortConfig>({
     field: 'network',
     direction: 'asc'
@@ -40,7 +41,7 @@ export default function OutstandingInvoicesClient({ data }: Props) {
   };
 
   // Sort invoices based on current sort config
-  const sortedInvoices = [...data.invoices].sort((a, b) => {
+  const sortedInvoices = [...localInvoices].sort((a, b) => {
     const direction = sortConfig.direction === 'asc' ? 1 : -1;
 
     switch (sortConfig.field) {
