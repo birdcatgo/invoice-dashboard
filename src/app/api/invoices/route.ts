@@ -82,7 +82,7 @@ export async function POST(request: Request) {
 
         if (isPartialPayment) {
           // Update the outstanding invoice with remaining amount
-          const remainingAmount = invoice.amount - invoice.amountPaid;
+          const remainingAmount = invoice.amount - (invoice.amountPaid || 0);
           await sheets.spreadsheets.values.update({
             spreadsheetId: process.env.CASH_FLOW_PROJECTIONS_EXTENDED_2024_SHEET_ID,
             range: `'Invoices'!B${invoiceIndex + 2}`,
