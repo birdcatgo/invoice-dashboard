@@ -10,6 +10,8 @@ interface Props {
   actionClass?: string;
   showPaymentDetails?: boolean;
   showDifference?: boolean;
+  onDatePaidEdit?: (invoice: Invoice, date: string) => void;
+  onAmountPaidEdit?: (invoice: Invoice, amount: number) => void;
 }
 
 export default function InvoiceTable({ 
@@ -18,8 +20,18 @@ export default function InvoiceTable({
   actionLabel = "Mark as Paid",
   actionClass = "text-green-600 hover:text-green-900",
   showPaymentDetails = false,
-  showDifference = false
+  showDifference = false,
+  onDatePaidEdit,
+  onAmountPaidEdit
 }: Props) {
+  const handleDateEdit = (invoice: Invoice, date: string) => {
+    onDatePaidEdit?.(invoice, date);
+  };
+
+  const handleAmountEdit = (invoice: Invoice, amount: string) => {
+    onAmountPaidEdit?.(invoice, parseFloat(amount));
+  };
+
   return (
     <div className="overflow-x-auto">
       <table className="min-w-full divide-y divide-gray-200">
