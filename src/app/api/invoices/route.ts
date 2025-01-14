@@ -39,7 +39,7 @@ export async function POST(request: Request) {
 
       if (invoiceIndex !== -1) {
         // Check if this is a partial payment
-        const isPartialPayment = invoice.amountPaid < invoice.amount;
+        const isPartialPayment = (invoice.amountPaid || 0) < invoice.amount;
 
         // Add to Paid Invoices sheet with payment details
         await sheets.spreadsheets.values.append({
@@ -51,8 +51,8 @@ export async function POST(request: Request) {
               invoice.network,
               invoice.amount,
               invoice.dueDate,
-              invoice.datePaid,
-              invoice.amountPaid
+              invoice.datePaid || '',
+              invoice.amountPaid || invoice.amount // Default to full amount if not specified
             ]]
           }
         });
